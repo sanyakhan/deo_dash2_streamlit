@@ -267,10 +267,12 @@ TABLE3_MODELS = {
         "sample": False,
     },
     "kimi": {
-        "label": "Kimi K3 sample",
-        "path": TABLE3_NR_DIR / "kimi_k3_one_placement_utility_scored.csv",
+        "label": "Kimi K3 complete conditions",
+        "path": TABLE3_NR_DIR / "kimi_k3_one_placement_low_2048_responses.csv",
         "color": "#68727d",
-        "sample": True,
+        "sample": False,
+        "complete_conditions_only": True,
+        "expected_rows_per_condition": 250,
     },
     "grok": {
         "label": "Grok 4.6 sample",
@@ -1215,6 +1217,16 @@ def load_table3_nr_rows() -> pd.DataFrame:
         if not path.exists():
             continue
         raw = pd.read_csv(path)
+        if meta.get("complete_conditions_only"):
+            error_text = raw.get("error", pd.Series("", index=raw.index)).fillna("").astype(str).str.strip()
+            successful = raw[error_text.eq("")].copy()
+            condition_counts = successful.groupby("condition").size()
+            complete_conditions = condition_counts[
+                condition_counts >= int(meta["expected_rows_per_condition"])
+            ].index
+            raw = successful[successful["condition"].isin(complete_conditions)].copy()
+            if raw.empty:
+                continue
         scored = add_decision_columns(raw)
         scored["model_key"] = model_key
         scored["model"] = meta["label"]
