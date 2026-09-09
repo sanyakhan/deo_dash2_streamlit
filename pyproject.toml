@@ -1,0 +1,15 @@
+[project]
+name = "deo-dash2-streamlit"
+version = "0.1.0"
+description = "Streamlit dashboard for DEO/ConSQ prompting protocol results"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
