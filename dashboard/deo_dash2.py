@@ -2272,7 +2272,7 @@ def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
     updatePreview(rows[0]);
     </script>
     """
-    st.html(component_html, unsafe_allow_javascript=True)
+    st.iframe(component_html, height=875)
 
 
 def render_table3_prompt_matrix(summary: pd.DataFrame) -> None:
