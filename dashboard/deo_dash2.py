@@ -1454,6 +1454,37 @@ def decision_owner_bands_for_conditions(
     ]
 
 
+def target_actor_bands_for_conditions(
+    condition_bases: list[str],
+) -> list[dict[str, object]]:
+    spans: dict[str, list[int]] = {}
+    for index, condition_base in enumerate(condition_bases):
+        target_actor = condition_base.split("_", maxsplit=1)[0]
+        spans.setdefault(target_actor, []).append(index)
+
+    colors = {
+        "user": "#ffe4f1",
+        "sdc": "#f4efff",
+        "llm": "#eaf8ef",
+        "difuser": "#fff3e6",
+    }
+    labels = {
+        "user": "TA: user",
+        "sdc": "TA: sdc",
+        "llm": "TA: llm",
+        "difuser": "TA: diff",
+    }
+    return [
+        {
+            "label": labels[target_actor],
+            "x0": min(indices) - 0.5,
+            "x1": max(indices) + 0.5,
+            "color": colors[target_actor],
+        }
+        for target_actor, indices in spans.items()
+    ]
+
+
 def add_table3_band_legend(
     fig: go.Figure,
     bands: list[dict[str, object]],
@@ -1830,7 +1861,10 @@ def plot_table3_grok_line(summary: pd.DataFrame) -> go.Figure | None:
     return fig
 
 
-def plot_table3_grok_parsed_bootstrap_line(summary: pd.DataFrame) -> go.Figure | None:
+def plot_table3_grok_parsed_bootstrap_line(
+    summary: pd.DataFrame,
+    band_by: str = "decision_owner",
+) -> go.Figure | None:
     grok = summary[
         summary["model_key"].eq("grok") & summary["placement_key"].eq("all_user")
     ].copy()
@@ -1841,11 +1875,12 @@ def plot_table3_grok_parsed_bootstrap_line(summary: pd.DataFrame) -> go.Figure |
         row["condition_base"]: row
         for _, row in grok.sort_values("condition_index").iterrows()
     }
-    condition_bases = [
-        base
-        for base in TABLE3_CONDITION_BASES
-        if base not in GROK_EXCLUDED_CONDITIONS
-    ]
+    order = (
+        TABLE3_CONDITION_BASES_BY_TA
+        if band_by == "target_actor"
+        else TABLE3_CONDITION_BASES
+    )
+    condition_bases = [base for base in order if base not in GROK_EXCLUDED_CONDITIONS]
     x = list(range(len(condition_bases)))
     y = []
     err_hi = []
@@ -1907,9 +1942,13 @@ def plot_table3_grok_parsed_bootstrap_line(summary: pd.DataFrame) -> go.Figure |
             ),
         )
     )
-    owner_bands = decision_owner_bands_for_conditions(condition_bases)
-    add_table3_x_bands(fig, 1, owner_bands)
-    add_table3_band_legend(fig, owner_bands, "owner", row=None, col=None)
+    if band_by == "target_actor":
+        bands = target_actor_bands_for_conditions(condition_bases)
+        add_table3_band_legend(fig, bands, "target", row=None, col=None)
+    else:
+        bands = decision_owner_bands_for_conditions(condition_bases)
+        add_table3_band_legend(fig, bands, "owner", row=None, col=None)
+    add_table3_x_bands(fig, 1, bands)
     fig.update_layout(
         height=430,
         margin={"l": 48, "r": 18, "t": 46, "b": 96},
@@ -2498,9 +2537,34 @@ def render_table3_front_section() -> None:
         if grok_summary.empty:
             st.warning("No Grok rows found yet.")
             return
+        with st.container(horizontal_alignment="center"):
+            grok_band_view = st.segmented_control(
+                "Grok band view",
+                [
+                    "Decision-owner bands",
+                    "Target-actor bands",
+                ],
+                default="Decision-owner bands",
+                label_visibility="collapsed",
+                key="grok_band_view",
+                width="content",
+            )
+            st.markdown(
+                """
+                <div style="text-align:center; color:#9ca3af; font-size:0.95rem; margin-top:0.45rem; margin-bottom:1.2rem;">
+                    Condition labels are ordered: target actor x decision owner.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
         grok_table = build_grok_table(grok_summary)
         render_grok_table(grok_table)
-        grok_line = plot_table3_grok_parsed_bootstrap_line(grok_summary)
+        grok_line = plot_table3_grok_parsed_bootstrap_line(
+            grok_summary,
+            band_by="target_actor"
+            if grok_band_view == "Target-actor bands"
+            else "decision_owner",
+        )
         if grok_line is not None:
             st.plotly_chart(grok_line, width="stretch", theme=None)
 
