@@ -1423,32 +1423,65 @@ def add_table3_x_bands(fig: go.Figure, row: int, bands: list[dict[str, object]])
         )
 
 
+def decision_owner_bands_for_conditions(
+    condition_bases: list[str],
+) -> list[dict[str, object]]:
+    spans: dict[str, list[int]] = {}
+    for index, condition_base in enumerate(condition_bases):
+        decision_owner = condition_base.split("_", maxsplit=1)[1]
+        spans.setdefault(decision_owner, []).append(index)
+
+    colors = {
+        "user": "#ffe4f1",
+        "sdc": "#f4efff",
+        "llm": "#eaf8ef",
+        "difuser": "#fff3e6",
+    }
+    labels = {
+        "user": "Owner: user",
+        "sdc": "Owner: sdc",
+        "llm": "Owner: llm",
+        "difuser": "Owner: diff",
+    }
+    return [
+        {
+            "label": labels[owner],
+            "x0": min(indices) - 0.5,
+            "x1": max(indices) + 0.5,
+            "color": colors[owner],
+        }
+        for owner, indices in spans.items()
+    ]
+
+
 def add_table3_band_legend(
     fig: go.Figure,
     bands: list[dict[str, object]],
     prefix: str,
+    row: int | None = 1,
+    col: int | None = 1,
 ) -> None:
     for band in bands:
         label = str(band["label"]).split(":", maxsplit=1)[-1].strip()
-        fig.add_trace(
-            go.Scatter(
-                x=[None],
-                y=[None],
-                mode="markers",
-                name=f"Band: {prefix}={label}",
-                legendgroup=f"band-{prefix}-{label}",
-                showlegend=True,
-                marker={
-                    "symbol": "square",
-                    "size": 11,
-                    "color": hex_to_rgba(str(band["color"]), 0.85),
-                    "line": {"color": "#9ca3af", "width": 0.7},
-                },
-                hoverinfo="skip",
-            ),
-            row=1,
-            col=1,
+        trace = go.Scatter(
+            x=[None],
+            y=[None],
+            mode="markers",
+            name=f"Band: {prefix}={label}",
+            legendgroup=f"band-{prefix}-{label}",
+            showlegend=True,
+            marker={
+                "symbol": "square",
+                "size": 11,
+                "color": hex_to_rgba(str(band["color"]), 0.85),
+                "line": {"color": "#9ca3af", "width": 0.7},
+            },
+            hoverinfo="skip",
         )
+        if row is None or col is None:
+            fig.add_trace(trace)
+        else:
+            fig.add_trace(trace, row=row, col=col)
 
 
 def plot_table3_paneled_by_placement(
@@ -1874,6 +1907,9 @@ def plot_table3_grok_parsed_bootstrap_line(summary: pd.DataFrame) -> go.Figure |
             ),
         )
     )
+    owner_bands = decision_owner_bands_for_conditions(condition_bases)
+    add_table3_x_bands(fig, 1, owner_bands)
+    add_table3_band_legend(fig, owner_bands, "owner", row=None, col=None)
     fig.update_layout(
         height=430,
         margin={"l": 48, "r": 18, "t": 46, "b": 96},
