@@ -796,146 +796,41 @@ def css() -> None:
         div[data-testid="stCheckbox"] label {
             gap: .35rem;
         }
-        div[data-testid="stCheckbox"] input[type="checkbox"] {
-            accent-color: #cbd5e1;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child,
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child > span,
-        div[data-testid="stCheckbox"] label > span:first-child,
-        div[data-testid="stCheckbox"] input[type="checkbox"] + div,
-        div[data-testid="stCheckbox"] input[type="checkbox"] + span {
-            background: #e5e7eb !important;
-            border: 1px solid #cbd5e1 !important;
-            border-radius: 6px !important;
-            box-shadow: inset 0 0 0 1px #f1f5f9 !important;
-            color: #64748b !important;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child svg,
-        div[data-testid="stCheckbox"] label > span:first-child svg {
-            color: #64748b !important;
-            fill: #64748b !important;
-            stroke: #64748b !important;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child svg path,
-        div[data-testid="stCheckbox"] label > span:first-child svg path {
-            fill: #64748b !important;
-            stroke: #64748b !important;
-        }
-        div[data-testid="stCheckbox"] label:has(input[type="checkbox"]:not(:checked)) > span:first-child {
-            background: #f8fafc !important;
-            border: 1px solid #cbd5e1 !important;
-            border-radius: 6px !important;
-            box-shadow: inset 0 0 0 1px #e2e8f0 !important;
-        }
-        div[data-testid="stCheckbox"] label:has(input[type="checkbox"]:checked) > span:first-child {
-            background: #e2e8f0 !important;
-            border: 1px solid #94a3b8 !important;
-            border-radius: 6px !important;
-            box-shadow: inset 0 0 0 1px #cbd5e1 !important;
-        }
         div[data-testid="stCheckbox"] p {
             font-size: .78rem !important;
             font-weight: 620;
             color: #64748b !important;
         }
-        div[data-testid="stNumberInput"] div[data-baseweb="input"],
-        div[data-testid="stNumberInput"] div[data-baseweb="base-input"],
-        div[data-testid="stNumberInput"] input {
+        div[data-testid="stTextInput"] div[data-baseweb="input"],
+        div[data-testid="stTextInput"] div[data-baseweb="base-input"],
+        div[data-testid="stTextInput"] input {
             background: #f8fafc !important;
             color: #111827 !important;
             border-color: #cbd5e1 !important;
             box-shadow: none !important;
             outline: none !important;
         }
-        div[data-testid="stNumberInput"] div[data-baseweb="input"] {
+        div[data-testid="stTextInput"] div[data-baseweb="input"] {
             border: 1px solid #cbd5e1 !important;
             border-radius: 6px !important;
             box-shadow: inset 0 0 0 1px #e2e8f0 !important;
         }
-        div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus,
-        div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within,
-        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]:focus,
-        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]:focus-within,
-        div[data-testid="stNumberInput"] input:focus {
+        div[data-testid="stTextInput"] div[data-baseweb="input"]:focus,
+        div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+        div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus,
+        div[data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+        div[data-testid="stTextInput"] input:focus {
             border-color: #cbd5e1 !important;
             box-shadow: inset 0 0 0 1px #e2e8f0 !important;
             outline: none !important;
         }
-        div[data-testid="stNumberInput"] div[data-baseweb="input"]::before,
-        div[data-testid="stNumberInput"] div[data-baseweb="input"]::after,
-        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]::before,
-        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]::after {
+        div[data-testid="stTextInput"] div[data-baseweb="input"]::before,
+        div[data-testid="stTextInput"] div[data-baseweb="input"]::after,
+        div[data-testid="stTextInput"] div[data-baseweb="base-input"]::before,
+        div[data-testid="stTextInput"] div[data-baseweb="base-input"]::after {
             border: 0 !important;
             box-shadow: none !important;
             outline: none !important;
-        }
-        div[data-testid="stNumberInput"] button {
-            background: #f8fafc !important;
-            color: #64748b !important;
-            border-color: #cbd5e1 !important;
-        }
-        div[data-testid="stNumberInput"] button:hover {
-            background: #eef2f7 !important;
-            color: #334155 !important;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"],
-        div[data-testid="stCheckbox"] label {
-            align-items: center !important;
-            display: inline-flex !important;
-            gap: .38rem !important;
-            position: relative !important;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child,
-        div[data-testid="stCheckbox"] label > span:first-child,
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > div:first-child:not([data-testid="stMarkdownContainer"]),
-        div[data-testid="stCheckbox"] label > div:first-child:not([data-testid="stMarkdownContainer"]) {
-            display: none !important;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"]::before,
-        div[data-testid="stCheckbox"] label::before {
-            background: #e5e7eb !important;
-            border: 1px solid #cbd5e1 !important;
-            border-radius: 5px !important;
-            box-shadow: inset 0 0 0 1px #f8fafc !important;
-            content: "" !important;
-            display: inline-block !important;
-            flex: 0 0 14px !important;
-            height: 14px !important;
-            width: 14px !important;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:has(input:checked)::before,
-        div[data-testid="stCheckbox"] label:has(input:checked)::before {
-            background: #e2e8f0 !important;
-            border-color: #cbd5e1 !important;
-        }
-        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:has(input:checked)::after,
-        div[data-testid="stCheckbox"] label:has(input:checked)::after {
-            border: solid #64748b !important;
-            border-width: 0 1.5px 1.5px 0 !important;
-            content: "" !important;
-            height: 7px !important;
-            left: 5px !important;
-            margin-top: -5px !important;
-            position: absolute !important;
-            top: 50% !important;
-            transform: rotate(45deg) !important;
-            width: 4px !important;
-        }
-        div[data-testid="stNumberInput"],
-        div[data-testid="stNumberInput"] * {
-            box-shadow: none !important;
-            outline: none !important;
-        }
-        div[data-testid="stNumberInput"] * {
-            border-color: #cbd5e1 !important;
-        }
-        div[data-testid="stNumberInput"] div[data-baseweb="input"],
-        div[data-testid="stNumberInput"] div[data-baseweb="input"] *,
-        div[data-testid="stNumberInput"] div[data-baseweb="base-input"],
-        div[data-testid="stNumberInput"] div[data-baseweb="base-input"] *,
-        div[data-testid="stNumberInput"] input,
-        div[data-testid="stNumberInput"] button {
-            background-color: #f8fafc !important;
         }
         .grok-table-wrap {
             overflow: auto;
@@ -4023,16 +3918,17 @@ def render_elephant_models_section(
                 width="stretch",
             )
         with y_axis_col:
-            y_axis_max = st.number_input(
+            y_axis_max_text = st.text_input(
                 "Y-axis max",
-                min_value=0.0,
-                max_value=100.0,
-                value=50.0,
-                step=5.0,
+                value="50.00",
                 help="Set to 0 to use the automatic scale.",
                 key=f"{graph_view_key}_y_axis_max",
                 width="stretch",
             )
+            try:
+                y_axis_max = min(100.0, max(0.0, float(y_axis_max_text)))
+            except (TypeError, ValueError):
+                y_axis_max = 50.0
         aggregate_models = False
         show_aggregate_ci = False
         show_model_range = False
