@@ -1811,6 +1811,7 @@ def col_mode_spec(
             ],
             "x_keys": condition_bases,
             "x_labels": {base: TABLE3_CONDITION_LABELS[base] for base in condition_bases},
+            "x_bands": decision_owner_bands_for_conditions(condition_bases),
             "x_axis_title": "Condition",
             "mapper": lambda row: [(row["placement_key"], row["condition_base"])],
             "subtitle": "One panel per prompt placement; x-axis is condition.",
