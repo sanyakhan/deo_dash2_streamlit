@@ -357,6 +357,12 @@ def css() -> None:
             --blue: #2563eb;
             --green: #059669;
             --amber: #d97706;
+            --primary-color: #cbd5e1;
+            --primary-color-rgb: 203, 213, 225;
+        }
+        .stApp, [data-testid="stAppViewContainer"] {
+            --primary-color: #cbd5e1 !important;
+            --primary-color-rgb: 203, 213, 225 !important;
         }
         html, body, .stApp, [data-testid="stAppViewContainer"] {
             background: #ffffff;
@@ -796,14 +802,36 @@ def css() -> None:
         div[data-testid="stCheckbox"] label {
             gap: .35rem;
         }
+        div[data-testid="stCheckbox"] [role="checkbox"],
+        div[data-testid="stCheckbox"] [aria-checked="true"],
+        div[data-testid="stCheckbox"] label > div:first-child,
+        div[data-testid="stCheckbox"] label > span:first-child {
+            background-color: #e5e7eb !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: inset 0 0 0 1px #f8fafc !important;
+            color: #64748b !important;
+            fill: #64748b !important;
+        }
+        div[data-testid="stCheckbox"] svg,
+        div[data-testid="stCheckbox"] svg path {
+            color: #64748b !important;
+            fill: #64748b !important;
+            stroke: #64748b !important;
+        }
         div[data-testid="stCheckbox"] p {
             font-size: .78rem !important;
             font-weight: 620;
             color: #64748b !important;
         }
+        div[data-testid="stTextInput"] {
+            --primary-color: #cbd5e1 !important;
+            --primary-color-rgb: 203, 213, 225 !important;
+        }
         div[data-testid="stTextInput"] div[data-baseweb="input"],
         div[data-testid="stTextInput"] div[data-baseweb="base-input"],
-        div[data-testid="stTextInput"] input {
+        div[data-testid="stTextInput"] input,
+        div[data-testid="stTextInput"] > div,
+        div[data-testid="stTextInput"] > div > div {
             background: #f8fafc !important;
             color: #111827 !important;
             border-color: #cbd5e1 !important;
