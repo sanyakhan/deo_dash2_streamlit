@@ -797,23 +797,45 @@ def css() -> None:
             gap: .35rem;
         }
         div[data-testid="stCheckbox"] input[type="checkbox"] {
-            accent-color: #64748b;
+            accent-color: #cbd5e1;
         }
         div[data-testid="stCheckbox"] label:has(input[type="checkbox"]:not(:checked)) > span:first-child {
-            background: #eef2f7 !important;
+            background: #f8fafc !important;
             border: 1px solid #cbd5e1 !important;
             border-radius: 6px !important;
             box-shadow: inset 0 0 0 1px #e2e8f0 !important;
         }
         div[data-testid="stCheckbox"] label:has(input[type="checkbox"]:checked) > span:first-child {
-            background: #64748b !important;
-            border: 1px solid #475569 !important;
+            background: #e2e8f0 !important;
+            border: 1px solid #94a3b8 !important;
             border-radius: 6px !important;
+            box-shadow: inset 0 0 0 1px #cbd5e1 !important;
         }
         div[data-testid="stCheckbox"] p {
             font-size: .78rem !important;
             font-weight: 620;
             color: #64748b !important;
+        }
+        div[data-testid="stNumberInput"] div[data-baseweb="input"],
+        div[data-testid="stNumberInput"] div[data-baseweb="base-input"],
+        div[data-testid="stNumberInput"] input {
+            background: #f8fafc !important;
+            color: #111827 !important;
+            border-color: #cbd5e1 !important;
+        }
+        div[data-testid="stNumberInput"] div[data-baseweb="input"] {
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            box-shadow: inset 0 0 0 1px #e2e8f0 !important;
+        }
+        div[data-testid="stNumberInput"] button {
+            background: #f8fafc !important;
+            color: #64748b !important;
+            border-color: #cbd5e1 !important;
+        }
+        div[data-testid="stNumberInput"] button:hover {
+            background: #eef2f7 !important;
+            color: #334155 !important;
         }
         .grok-table-wrap {
             overflow: auto;
