@@ -1,7 +1,7 @@
 [project]
-name = "deo-dash2-streamlit"
+name = "withelephantdash"
 version = "0.1.0"
-description = "Streamlit dashboard for DEO/ConSQ prompting protocol results"
+description = "Streamlit dashboard for DEO/ConSQ and Elephant prompting protocol results"
 requires-python = ">=3.11"
 
 [build-system]

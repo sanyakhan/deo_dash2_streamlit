@@ -87,7 +87,7 @@ STRUCTURE_FRAMING = {
 }
 PLOT_COLORS = {
     "OpenAI": "#d97706",
-    "Gemini": "#059669",
+    "Gemini": "#0ea5ff",
     "Claude": "#2563eb",
 }
 TABLE3_CONDITION_BASES = [
@@ -116,6 +116,15 @@ TABLE3_CONDITION_BASES_BY_TA = [
 TABLE3_CONDITION_LABELS = {
     base: base.replace("_", " x ", 1) for base in TABLE3_CONDITION_BASES
 }
+COL_CONDITION_BASES = [
+    condition_base
+    for condition_base in TABLE3_CONDITION_BASES
+    if not condition_base.endswith("_difuser")
+    and not (
+        condition_base.startswith("llm_")
+        and condition_base != "llm_llm"
+    )
+]
 TABLE3_PLACEMENTS = {
     "all_user": {
         "label": "S: empty / U: framing + output + dilemma",
@@ -138,6 +147,21 @@ TABLE3_PLACEMENT_AXIS_LABELS = [
     "S: framing<br>U: output +<br>dilemma",
     "S: framing +<br>output<br>U: dilemma",
 ]
+COL_GRAPH_VIEWS = [
+    "By condition",
+    "By target actor",
+    "By PDO",
+    "By placement",
+    "PDO = TA?",
+    "Actor role",
+    "Overall",
+]
+COL_PLACEMENT_LABELS = {
+    "all_user": "All in user",
+    "system_framing": "S: framing",
+    "system_framing_output": "S: framing + output",
+}
+ELEPHANT_BASELINE_LABEL = "S: empty / U: dilemma + output"
 TABLE3_CONDITION_AXIS_VALUES = ["user", "sdc", "llm", "difuser"]
 TABLE3_CONDITION_AXIS_LABELS = {
     "user": "user",
@@ -251,7 +275,7 @@ TABLE3_MODELS = {
     "gemini": {
         "label": "Gemini 3.7 Flash",
         "path": TABLE3_NR_DIR / "google_2048_responses.csv",
-        "color": "#c4572d",
+        "color": "#0ea5ff",
         "sample": False,
     },
     "deepseek": {
@@ -285,6 +309,31 @@ TABLE3_MODEL_ORDER = list(TABLE3_MODELS)
 COMPLETE_TABLE3_MODEL_ORDER = [
     model_key for model_key in TABLE3_MODEL_ORDER if not TABLE3_MODELS[model_key]["sample"]
 ]
+ELEPHANT_RESULTS_CSV = ROOT / "artifacts" / "elephant_syc" / "model_sycophancy_scored.csv"
+ELEPHANT_BASELINE_CONDITION = "no_framing_dilemma_output"
+ELEPHANT_MODELS = {
+    "opus": {
+        "label": "Opus 5",
+        "color": TABLE3_MODELS["opus"]["color"],
+    },
+    "gpt": {
+        "label": "GPT-5.6-sol",
+        "color": TABLE3_MODELS["gpt"]["color"],
+    },
+    "gemini": {
+        "label": "Gemini 3.7 Flash",
+        "color": TABLE3_MODELS["gemini"]["color"],
+    },
+    "deepseek": {
+        "label": "DeepSeek V4 Flash",
+        "color": TABLE3_MODELS["deepseek"]["color"],
+    },
+    "zai": {
+        "label": "GLM-5.3 Flash",
+        "color": TABLE3_MODELS["zai"]["color"],
+    },
+}
+ELEPHANT_MODEL_ORDER = list(ELEPHANT_MODELS)
 plt.rcParams.update(
     {
         "font.family": ["Arial", "Helvetica", "DejaVu Sans"],
@@ -581,9 +630,9 @@ def css() -> None:
         }
         div[data-testid="stButtonGroup"] [role="radiogroup"] {
             background: #f8fafc !important;
-            border: 0 !important;
+            border: 1px solid #e5e7eb !important;
             border-radius: 8px !important;
-            box-shadow: inset 0 0 0 1px #eef2f7;
+            box-shadow: inset 0 0 0 1px #f1f5f9;
             display: grid !important;
             grid-template-columns: repeat(3, minmax(130px, 1fr));
             gap: 4px;
@@ -593,22 +642,52 @@ def css() -> None:
             width: 100%;
             overflow-x: auto;
         }
+        div[data-testid="stButtonGroup"] button,
         div[data-testid="stButtonGroup"] button[data-variant="segmented_control"] {
-            background: transparent !important;
+            background: #f8fafc !important;
             color: var(--ink) !important;
             border: 0 !important;
             border-radius: 6px !important;
+            box-shadow: none !important;
             min-height: 2.45rem;
             padding: .2rem .55rem;
+            outline: none !important;
             transition: background .14s ease, box-shadow .14s ease;
         }
+        div[data-testid="stButtonGroup"] button:hover,
         div[data-testid="stButtonGroup"] button[data-variant="segmented_control"]:hover {
             background: #eef2f7 !important;
         }
-        div[data-testid="stButtonGroup"] button[data-variant="segmented_control"][data-selected="true"] {
-            background: #ffffff !important;
-            box-shadow: 0 1px 5px rgba(15, 23, 42, .12);
+        div[data-testid="stButtonGroup"] button[aria-checked="true"],
+        div[data-testid="stButtonGroup"] button[aria-pressed="true"],
+        div[data-testid="stButtonGroup"] button[aria-selected="true"],
+        div[data-testid="stButtonGroup"] button[data-selected="true"],
+        div[data-testid="stButtonGroup"] button[data-variant="segmented_control"][data-selected="true"],
+        div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"],
+        div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] {
+            background: #cbd5e1 !important;
+            border: 1px solid #94a3b8 !important;
+            box-shadow:
+                0 1px 6px rgba(15, 23, 42, .16),
+                inset 0 -2px 0 #475569 !important;
         }
+        div[data-testid="stButtonGroup"] button[aria-checked="true"] p,
+        div[data-testid="stButtonGroup"] button[aria-checked="true"] span,
+        div[data-testid="stButtonGroup"] button[aria-pressed="true"] p,
+        div[data-testid="stButtonGroup"] button[aria-pressed="true"] span,
+        div[data-testid="stButtonGroup"] button[aria-selected="true"] p,
+        div[data-testid="stButtonGroup"] button[aria-selected="true"] span,
+        div[data-testid="stButtonGroup"] button[data-selected="true"] p,
+        div[data-testid="stButtonGroup"] button[data-selected="true"] span,
+        div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"] p,
+        div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"] span,
+        div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] p,
+        div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] span {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+        div[data-testid="stButtonGroup"] button p,
+        div[data-testid="stButtonGroup"] button span,
         div[data-testid="stButtonGroup"] button[data-variant="segmented_control"] p {
             color: var(--ink) !important;
             font-size: .76rem;
@@ -716,10 +795,24 @@ def css() -> None:
         div[data-testid="stCheckbox"] label {
             gap: .35rem;
         }
+        div[data-testid="stCheckbox"] input[type="checkbox"] {
+            accent-color: #64748b;
+        }
+        div[data-testid="stCheckbox"] label:has(input[type="checkbox"]:not(:checked)) > span:first-child {
+            background: #eef2f7 !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            box-shadow: inset 0 0 0 1px #e2e8f0 !important;
+        }
+        div[data-testid="stCheckbox"] label:has(input[type="checkbox"]:checked) > span:first-child {
+            background: #64748b !important;
+            border: 1px solid #475569 !important;
+            border-radius: 6px !important;
+        }
         div[data-testid="stCheckbox"] p {
             font-size: .78rem !important;
-            font-weight: 650;
-            color: #374151 !important;
+            font-weight: 620;
+            color: #64748b !important;
         }
         .grok-table-wrap {
             overflow: auto;
@@ -1293,6 +1386,171 @@ def build_table3_nr_summary() -> pd.DataFrame:
     return pd.DataFrame(summary_rows)
 
 
+def truthy_series(values: pd.Series) -> pd.Series:
+    return values.fillna(False).astype(str).str.lower().isin({"true", "1", "yes"})
+
+
+def elephant_condition_parts(condition: str) -> tuple[str | None, str | None]:
+    if condition == ELEPHANT_BASELINE_CONDITION:
+        return None, None
+    suffixes = {
+        "system_framing_output": "_s_framing_output",
+        "system_framing": "_s_framing",
+        "all_user": "",
+    }
+    for placement_key, suffix in suffixes.items():
+        if suffix and condition.endswith(suffix):
+            return condition.removesuffix(suffix), placement_key
+        if not suffix:
+            return condition, placement_key
+    return None, None
+
+
+@st.cache_data(show_spinner=False)
+def load_elephant_rows() -> pd.DataFrame:
+    if not ELEPHANT_RESULTS_CSV.exists():
+        return pd.DataFrame()
+    rows = pd.read_csv(ELEPHANT_RESULTS_CSV)
+    if "model_key" not in rows.columns:
+        model_to_key = {
+            "claude-opus-5": "opus",
+            "gpt-5.6-sol": "gpt",
+            "gemini-3.7-flash": "gemini",
+            "deepseek-v4-flash": "deepseek",
+            "glm-5.3-flash": "zai",
+        }
+        rows["model_key"] = rows["model"].map(model_to_key)
+    if "model" in rows.columns:
+        rows = rows[~rows["model"].astype(str).str.contains("3.5", na=False)].copy()
+    rows = rows[rows["model_key"].isin(ELEPHANT_MODELS)].copy()
+    rows["parsed_bool"] = truthy_series(rows["parsed"])
+    rows["sycophantic_bool"] = truthy_series(rows["is_sycophantic"])
+    rows["verdict_flipped_bool"] = truthy_series(rows["verdict_flipped"])
+    parts = rows["condition"].astype(str).apply(elephant_condition_parts)
+    rows["condition_base"] = parts.apply(lambda item: item[0])
+    rows["placement_key"] = parts.apply(lambda item: item[1])
+    rows = rows[
+        rows["condition_base"].isin(TABLE3_CONDITION_BASES)
+        & rows["placement_key"].isin(TABLE3_PLACEMENTS)
+    ].copy()
+    rows["condition_index"] = rows["condition_base"].map(
+        {base: index for index, base in enumerate(TABLE3_CONDITION_BASES)}
+    )
+    rows["placement_index"] = rows["placement_key"].map(
+        {key: index for index, key in enumerate(TABLE3_PLACEMENTS)}
+    )
+    return rows
+
+
+@st.cache_data(show_spinner=False)
+def build_elephant_summary() -> pd.DataFrame:
+    rows = load_elephant_rows()
+    if rows.empty:
+        return pd.DataFrame()
+
+    summary_rows = []
+    grouped = rows.groupby(["condition", "condition_base", "placement_key", "model_key"])
+    for (condition, condition_base, placement_key, model_key), model_rows in grouped:
+        parsed_rows = model_rows[model_rows["parsed_bool"]].copy()
+        parsed = int(len(parsed_rows))
+        unparsed = int(len(model_rows) - parsed)
+        syc_values = parsed_rows["sycophantic_bool"].astype(int)
+        flip_values = parsed_rows["verdict_flipped_bool"].astype(int)
+        sycophantic = int(syc_values.sum())
+        verdict_flips = int(flip_values.sum())
+        sycophancy_percent = float(syc_values.mean() * 100) if parsed else None
+        verdict_flip_percent = float(flip_values.mean() * 100) if parsed else None
+        syc_low, syc_high = bootstrap_binary_ci(
+            syc_values,
+            seed=bootstrap_seed("elephant-syc", condition, model_key, "sycophancy"),
+        )
+        flip_low, flip_high = bootstrap_binary_ci(
+            flip_values,
+            seed=bootstrap_seed("elephant-syc", condition, model_key, "flip"),
+        )
+        placement_meta = TABLE3_PLACEMENTS[placement_key]
+        summary_rows.append(
+            {
+                "condition": condition,
+                "condition_base": condition_base,
+                "condition_label": TABLE3_CONDITION_LABELS[condition_base],
+                "condition_index": TABLE3_CONDITION_BASES.index(condition_base),
+                "placement_key": placement_key,
+                "placement": placement_meta["label"],
+                "placement_short": placement_meta["short"],
+                "placement_index": list(TABLE3_PLACEMENTS).index(placement_key),
+                "model_key": model_key,
+                "model": ELEPHANT_MODELS[model_key]["label"],
+                "color": ELEPHANT_MODELS[model_key]["color"],
+                "pairs": int(len(model_rows)),
+                "parsed_pairs": parsed,
+                "unparsed_pairs": unparsed,
+                "sycophantic_pairs": sycophantic,
+                "sycophancy_percent": sycophancy_percent,
+                "sycophancy_ci_low": syc_low,
+                "sycophancy_ci_high": syc_high,
+                "verdict_flip_pairs": verdict_flips,
+                "verdict_flip_percent": verdict_flip_percent,
+                "verdict_flip_ci_low": flip_low,
+                "verdict_flip_ci_high": flip_high,
+            }
+        )
+    return pd.DataFrame(summary_rows)
+
+
+@st.cache_data(show_spinner=False)
+def build_elephant_baseline_summary() -> pd.DataFrame:
+    if not ELEPHANT_RESULTS_CSV.exists():
+        return pd.DataFrame()
+    rows = pd.read_csv(ELEPHANT_RESULTS_CSV)
+    if "model_key" not in rows.columns:
+        model_to_key = {
+            "claude-opus-5": "opus",
+            "gpt-5.6-sol": "gpt",
+            "gemini-3.7-flash": "gemini",
+            "deepseek-v4-flash": "deepseek",
+            "glm-5.3-flash": "zai",
+        }
+        rows["model_key"] = rows["model"].map(model_to_key)
+    if "model" in rows.columns:
+        rows = rows[~rows["model"].astype(str).str.contains("3.5", na=False)].copy()
+    rows = rows[
+        rows["condition"].eq(ELEPHANT_BASELINE_CONDITION)
+        & rows["model_key"].isin(ELEPHANT_MODELS)
+    ].copy()
+    if rows.empty:
+        return pd.DataFrame()
+    rows["parsed_bool"] = truthy_series(rows["parsed"])
+    rows["sycophantic_bool"] = truthy_series(rows["is_sycophantic"])
+    summary_rows = []
+    for model_key, model_rows in rows.groupby("model_key"):
+        parsed_rows = model_rows[model_rows["parsed_bool"]].copy()
+        parsed = int(len(parsed_rows))
+        if parsed <= 0:
+            continue
+        sycophantic = int(parsed_rows["sycophantic_bool"].astype(int).sum())
+        ci_low, ci_high = binary_ci_from_counts(
+            sycophantic,
+            parsed,
+            seed=bootstrap_seed("elephant-baseline", model_key),
+        )
+        meta = ELEPHANT_MODELS[model_key]
+        summary_rows.append(
+            {
+                "model_key": model_key,
+                "model": meta["label"],
+                "color": meta["color"],
+                "positive": sycophantic,
+                "total": parsed,
+                "unparsed": int(len(model_rows) - parsed),
+                "sycophancy_percent": sycophantic / parsed * 100,
+                "sycophancy_percent_ci_low": ci_low,
+                "sycophancy_percent_ci_high": ci_high,
+            }
+        )
+    return pd.DataFrame(summary_rows)
+
+
 def table3_jitter(
     model_key: str,
     model_order: list[str] | None = None,
@@ -1388,7 +1646,11 @@ def add_table3_model_trace(
     )
 
 
-def table3_base_layout(fig: go.Figure, height: int) -> go.Figure:
+def table3_base_layout(
+    fig: go.Figure,
+    height: int,
+    y_range: list[float] | None = None,
+) -> go.Figure:
     fig.update_layout(
         height=height,
         margin={"l": 34, "r": 12, "t": 92, "b": 42},
@@ -1405,7 +1667,7 @@ def table3_base_layout(fig: go.Figure, height: int) -> go.Figure:
         font={"family": "Arial, Helvetica, sans-serif", "size": 10, "color": "#111827"},
     )
     fig.update_yaxes(
-        range=[0, 105],
+        range=y_range or [0, 105],
         title_text="",
         showgrid=True,
         gridcolor="#f1f5f9",
@@ -1414,6 +1676,551 @@ def table3_base_layout(fig: go.Figure, height: int) -> go.Figure:
     )
     fig.update_xaxes(showgrid=False, zeroline=False)
     return fig
+
+
+def binary_ci_from_counts(
+    positive: int,
+    total: int,
+    seed: int,
+) -> tuple[float | None, float | None]:
+    if total <= 0:
+        return None, None
+    values = pd.Series([1.0] * int(positive) + [0.0] * int(total - positive))
+    return bootstrap_binary_ci(values, seed=seed)
+
+
+def split_condition_base(condition_base: str) -> tuple[str, str]:
+    target_actor, decision_owner = condition_base.split("_", maxsplit=1)
+    return target_actor, decision_owner
+
+
+def safe_int(value: object) -> int:
+    parsed = pd.to_numeric(value, errors="coerce")
+    if pd.isna(parsed):
+        return 0
+    return int(parsed)
+
+
+def col_actor_label(value: str) -> str:
+    return {
+        "user": "user",
+        "sdc": "AI agent",
+        "llm": "LLM",
+        "difuser": "poster",
+    }.get(value, value)
+
+
+def col_mode_spec(
+    view: str,
+    condition_bases: list[str],
+) -> dict[str, object]:
+    placement_keys = list(TABLE3_PLACEMENTS)
+    placement_labels = {
+        key: COL_PLACEMENT_LABELS.get(key, TABLE3_PLACEMENTS[key]["short"])
+        for key in placement_keys
+    }
+    present_targets = [
+        actor
+        for actor in TABLE3_CONDITION_AXIS_VALUES
+        if any(split_condition_base(base)[0] == actor for base in condition_bases)
+    ]
+    present_owners = [
+        actor
+        for actor in TABLE3_CONDITION_AXIS_VALUES
+        if any(split_condition_base(base)[1] == actor for base in condition_bases)
+    ]
+
+    if view == "By target actor":
+        return {
+            "facets": [
+                {"key": actor, "label": f"target: {col_actor_label(actor)}"}
+                for actor in present_targets
+            ],
+            "x_keys": placement_keys,
+            "x_labels": placement_labels,
+            "x_axis_title": "Prompt placement",
+            "mapper": lambda row: [(split_condition_base(row["condition_base"])[0], row["placement_key"])],
+            "subtitle": "Conditions are averaged by target actor; decision owners are pooled.",
+        }
+
+    if view == "By PDO":
+        return {
+            "facets": [
+                {"key": actor, "label": f"PDO: {col_actor_label(actor)}"}
+                for actor in present_owners
+            ],
+            "x_keys": placement_keys,
+            "x_labels": placement_labels,
+            "x_axis_title": "Prompt placement",
+            "mapper": lambda row: [(split_condition_base(row["condition_base"])[1], row["placement_key"])],
+            "subtitle": "Conditions are averaged by primary decision owner; target actors are pooled.",
+        }
+
+    if view == "By placement":
+        return {
+            "facets": [
+                {"key": key, "label": placement_labels[key]} for key in placement_keys
+            ],
+            "x_keys": condition_bases,
+            "x_labels": {base: TABLE3_CONDITION_LABELS[base] for base in condition_bases},
+            "x_axis_title": "Condition",
+            "mapper": lambda row: [(row["placement_key"], row["condition_base"])],
+            "subtitle": "One panel per prompt placement; x-axis is condition.",
+        }
+
+    if view == "PDO = TA?":
+        return {
+            "facets": [
+                {"key": "same", "label": "PDO = TA"},
+                {"key": "different", "label": "PDO != TA"},
+            ],
+            "x_keys": placement_keys,
+            "x_labels": placement_labels,
+            "x_axis_title": "Prompt placement",
+            "mapper": lambda row: [
+                (
+                    "same"
+                    if split_condition_base(row["condition_base"])[0]
+                    == split_condition_base(row["condition_base"])[1]
+                    else "different",
+                    row["placement_key"],
+                )
+            ],
+            "subtitle": "Conditions are split by whether primary decision owner equals target actor.",
+        }
+
+    if view == "Actor role":
+        role_keys = []
+        role_labels = {}
+        for actor in TABLE3_CONDITION_AXIS_VALUES:
+            if actor in present_targets:
+                role_key = f"{actor}_target"
+                role_keys.append(role_key)
+                role_labels[role_key] = f"{col_actor_label(actor)} as TA"
+            if actor in present_owners:
+                role_key = f"{actor}_owner"
+                role_keys.append(role_key)
+                role_labels[role_key] = f"{col_actor_label(actor)} as PDO"
+
+        def actor_role_mapper(row: pd.Series) -> list[tuple[str, str]]:
+            target_actor, decision_owner = split_condition_base(row["condition_base"])
+            pairs = []
+            target_key = f"{target_actor}_target"
+            owner_key = f"{decision_owner}_owner"
+            if target_key in role_labels:
+                pairs.append((row["placement_key"], target_key))
+            if owner_key in role_labels:
+                pairs.append((row["placement_key"], owner_key))
+            return pairs
+
+        return {
+            "facets": [
+                {"key": key, "label": placement_labels[key]} for key in placement_keys
+            ],
+            "x_keys": role_keys,
+            "x_labels": role_labels,
+            "x_axis_title": "Actor role in condition",
+            "mapper": actor_role_mapper,
+            "subtitle": (
+                "Compares an actor appearing as target actor versus as primary decision "
+                "owner. Same-actor conditions contribute to both roles."
+            ),
+        }
+
+    if view == "Overall":
+        return {
+            "facets": [{"key": "overall", "label": "all col conditions"}],
+            "x_keys": placement_keys,
+            "x_labels": placement_labels,
+            "x_axis_title": "Prompt placement",
+            "mapper": lambda row: [("overall", row["placement_key"])],
+            "subtitle": "All col conditions are pooled; only the placement trend remains.",
+        }
+
+    return {
+        "facets": [
+            {"key": base, "label": TABLE3_CONDITION_LABELS[base]}
+            for base in condition_bases
+        ],
+        "x_keys": placement_keys,
+        "x_labels": placement_labels,
+        "x_axis_title": "Prompt placement",
+        "mapper": lambda row: [(row["condition_base"], row["placement_key"])],
+        "subtitle": "One panel per condition; x-axis is prompt placement.",
+    }
+
+
+def build_collapsed_metric_summary(
+    summary: pd.DataFrame,
+    *,
+    view: str,
+    condition_bases: list[str],
+    model_order: list[str],
+    model_meta: dict[str, dict[str, object]],
+    numerator_col: str,
+    denominator_col: str,
+    unparsed_col: str,
+    percent_col: str,
+    metric_seed: str,
+    aggregate_models: bool = False,
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    spec = col_mode_spec(view, condition_bases)
+    filtered = summary[
+        summary["condition_base"].isin(condition_bases)
+        & summary["model_key"].isin(model_order)
+    ].copy()
+    x_index = {key: index for index, key in enumerate(spec["x_keys"])}
+    facet_index = {facet["key"]: index for index, facet in enumerate(spec["facets"])}
+    grouped: dict[tuple[str, str, str], dict[str, object]] = {}
+    mapper = spec["mapper"]
+
+    for _, row in filtered.iterrows():
+        for facet_key, x_key in mapper(row):
+            if facet_key not in facet_index or x_key not in x_index:
+                continue
+            group_key = (str(facet_key), str(x_key), str(row["model_key"]))
+            bucket = grouped.setdefault(
+                group_key,
+                {
+                    "positive": 0,
+                    "total": 0,
+                    "unparsed": 0,
+                },
+            )
+            bucket["positive"] += safe_int(row.get(numerator_col))
+            bucket["total"] += safe_int(row.get(denominator_col))
+            bucket["unparsed"] += safe_int(row.get(unparsed_col))
+
+    rows = []
+    for (facet_key, x_key, model_key), bucket in grouped.items():
+        total = int(bucket["total"])
+        positive = int(bucket["positive"])
+        if total <= 0:
+            continue
+        ci_low, ci_high = binary_ci_from_counts(
+            positive,
+            total,
+            seed=bootstrap_seed(metric_seed, view, facet_key, x_key, model_key),
+        )
+        meta = model_meta[model_key]
+        rows.append(
+            {
+                "facet_key": facet_key,
+                "facet_label": spec["facets"][facet_index[facet_key]]["label"],
+                "facet_index": facet_index[facet_key],
+                "x_key": x_key,
+                "x_label": spec["x_labels"][x_key],
+                "x_index": x_index[x_key],
+                "model_key": model_key,
+                "model": meta["label"],
+                "color": meta["color"],
+                "positive": positive,
+                "total": total,
+                "unparsed": int(bucket["unparsed"]),
+                percent_col: positive / total * 100,
+                f"{percent_col}_ci_low": ci_low,
+                f"{percent_col}_ci_high": ci_high,
+            }
+        )
+
+    collapsed = pd.DataFrame(rows)
+    if collapsed.empty or not aggregate_models:
+        return collapsed, spec
+
+    mean_rows = []
+    for (facet_key, x_key), sub in collapsed.groupby(["facet_key", "x_key"]):
+        sub = sub[sub["model_key"].isin(model_order)].copy()
+        if sub.empty:
+            continue
+        values = pd.to_numeric(sub[percent_col], errors="coerce").dropna()
+        if values.empty:
+            continue
+        pooled_positive = int(pd.to_numeric(sub["positive"], errors="coerce").sum())
+        pooled_total = int(pd.to_numeric(sub["total"], errors="coerce").sum())
+        ci_low, ci_high = binary_ci_from_counts(
+            pooled_positive,
+            pooled_total,
+            seed=bootstrap_seed(metric_seed, view, facet_key, x_key, "model_mean"),
+        )
+        mean_rows.append(
+            {
+                "facet_key": facet_key,
+                "facet_label": sub["facet_label"].iloc[0],
+                "facet_index": int(sub["facet_index"].iloc[0]),
+                "x_key": x_key,
+                "x_label": sub["x_label"].iloc[0],
+                "x_index": int(sub["x_index"].iloc[0]),
+                "model_key": "model_mean",
+                "model": "Model mean",
+                "color": "#111827",
+                "positive": pooled_positive,
+                "total": pooled_total,
+                "unparsed": int(pd.to_numeric(sub["unparsed"], errors="coerce").sum()),
+                percent_col: float(values.mean()),
+                f"{percent_col}_ci_low": ci_low,
+                f"{percent_col}_ci_high": ci_high,
+                f"{percent_col}_range_low": float(values.min()),
+                f"{percent_col}_range_high": float(values.max()),
+            }
+        )
+    return pd.DataFrame(mean_rows), spec
+
+
+def add_collapsed_metric_trace(
+    fig: go.Figure,
+    sub: pd.DataFrame,
+    *,
+    model_key: str,
+    row: int,
+    col: int,
+    model_order: list[str],
+    percent_col: str,
+    metric_label: str,
+    showlegend: bool,
+    aggregate_models: bool,
+    show_ci: bool = True,
+    show_model_range: bool = False,
+) -> None:
+    model_sub = sub[sub["model_key"].eq(model_key)].sort_values("x_index")
+    if model_sub.empty:
+        return
+    y = pd.to_numeric(model_sub[percent_col], errors="coerce")
+    low_col = f"{percent_col}_ci_low"
+    high_col = f"{percent_col}_ci_high"
+    err_hi = pd.to_numeric(model_sub[high_col], errors="coerce") - y
+    err_lo = y - pd.to_numeric(model_sub[low_col], errors="coerce")
+    color = str(model_sub["color"].iloc[0])
+    jitter = 0.0 if aggregate_models else table3_jitter(model_key, model_order)
+    x = model_sub["x_index"].astype(float) + jitter
+    custom = np.stack(
+        [
+            model_sub["x_label"],
+            model_sub["model"],
+            pd.to_numeric(model_sub[low_col], errors="coerce"),
+            pd.to_numeric(model_sub[high_col], errors="coerce"),
+            pd.to_numeric(model_sub["positive"], errors="coerce"),
+            pd.to_numeric(model_sub["total"], errors="coerce"),
+            pd.to_numeric(model_sub["unparsed"], errors="coerce"),
+            y,
+        ],
+        axis=-1,
+    )
+    hovertemplate = (
+        "X: %{customdata[0]}<br>"
+        "Model: %{customdata[1]}<br>"
+        f"{metric_label}: %{{customdata[7]:.3f}}%<br>"
+        "Interval: %{customdata[2]:.3f}-%{customdata[3]:.3f}%<br>"
+        "Positive rows: %{customdata[4]:.0f} / %{customdata[5]:.0f}<br>"
+        "Unparsed rows: %{customdata[6]:.0f}"
+        "<extra></extra>"
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=y,
+            customdata=custom,
+            mode="lines+markers",
+            name=str(model_sub["model"].iloc[0]),
+            legendgroup=f"collapsed-{model_key}",
+            showlegend=showlegend,
+            line={"color": color, "width": 2.6 if aggregate_models else 2.0},
+            marker={"color": color, "size": 6.0 if aggregate_models else 5.5},
+            error_y={
+                "type": "data",
+                "array": err_hi.clip(lower=0),
+                "arrayminus": err_lo.clip(lower=0),
+                "visible": show_ci,
+                "thickness": 1,
+                "width": 4,
+                "color": hex_to_rgba(color, 0.34) if color.startswith("#") else color,
+            },
+            opacity=0.95,
+            hovertemplate=hovertemplate,
+        ),
+        row=row,
+        col=col,
+    )
+    if aggregate_models and show_model_range:
+        range_low_col = f"{percent_col}_range_low"
+        range_high_col = f"{percent_col}_range_high"
+        if range_low_col in model_sub and range_high_col in model_sub:
+            range_hi = pd.to_numeric(model_sub[range_high_col], errors="coerce") - y
+            range_lo = y - pd.to_numeric(model_sub[range_low_col], errors="coerce")
+            fig.add_trace(
+                go.Scatter(
+                    x=x,
+                    y=y,
+                    mode="markers",
+                    name="Model range",
+                    legendgroup=f"collapsed-{model_key}-range",
+                    showlegend=False,
+                    marker={"color": color, "size": 1, "opacity": 0},
+                    error_y={
+                        "type": "data",
+                        "array": range_hi.clip(lower=0),
+                        "arrayminus": range_lo.clip(lower=0),
+                        "visible": True,
+                        "thickness": 1.25,
+                        "width": 7,
+                        "color": hex_to_rgba(color, 0.22) if color.startswith("#") else color,
+                    },
+                    hoverinfo="skip",
+                ),
+                row=row,
+                col=col,
+            )
+
+
+def plot_collapsed_metric_summary(
+    collapsed: pd.DataFrame,
+    spec: dict[str, object],
+    *,
+    model_order: list[str],
+    percent_col: str,
+    metric_label: str,
+    y_axis_title: str,
+    y_range: list[float] | None = None,
+    aggregate_models: bool = False,
+    show_aggregate_ci: bool = False,
+    show_model_range: bool = False,
+    baseline: pd.DataFrame | None = None,
+    baseline_label: str | None = None,
+) -> go.Figure:
+    if aggregate_models and baseline is not None and not baseline.empty:
+        values = pd.to_numeric(
+            baseline[baseline["model_key"].isin(model_order)][percent_col],
+            errors="coerce",
+        ).dropna()
+        baseline = (
+            pd.DataFrame(
+                [
+                    {
+                        "model_key": "model_mean",
+                        "model": "Model mean",
+                        "color": "#111827",
+                        percent_col: float(values.mean()),
+                    }
+                ]
+            )
+            if not values.empty
+            else pd.DataFrame()
+        )
+    facets = spec["facets"]
+    x_keys = spec["x_keys"]
+    x_labels = spec["x_labels"]
+    rows = max(1, int(np.ceil(len(facets) / 2)))
+    cols = 1 if len(facets) == 1 else 2
+    fig = make_subplots(
+        rows=rows,
+        cols=cols,
+        subplot_titles=[facet["label"] for facet in facets],
+        shared_yaxes=True,
+        vertical_spacing=0.11,
+        horizontal_spacing=0.07,
+    )
+    trace_models = ["model_mean"] if aggregate_models else model_order
+    for index, facet in enumerate(facets):
+        row = index // cols + 1
+        col = index % cols + 1
+        sub = collapsed[collapsed["facet_key"].eq(facet["key"])]
+        for model_key in trace_models:
+            add_collapsed_metric_trace(
+                fig,
+                sub,
+                model_key=model_key,
+                row=row,
+                col=col,
+                model_order=model_order,
+                percent_col=percent_col,
+                metric_label=metric_label,
+                showlegend=index == 0,
+                aggregate_models=aggregate_models,
+                show_ci=(not aggregate_models) or show_aggregate_ci,
+                show_model_range=show_model_range,
+            )
+        if baseline is not None and not baseline.empty:
+            for _, baseline_row in baseline.iterrows():
+                color = str(baseline_row["color"])
+                name = (
+                    f"{baseline_label}: {baseline_row['model']}"
+                    if not aggregate_models
+                    else f"{baseline_label}: model mean"
+                )
+                fig.add_trace(
+                    go.Scatter(
+                        x=[-0.5, len(x_keys) - 0.5],
+                        y=[baseline_row[percent_col], baseline_row[percent_col]],
+                        mode="lines",
+                        name=name,
+                        legendgroup=f"baseline-{baseline_row['model_key']}",
+                        showlegend=index == 0,
+                        line={"color": color, "width": 2 if aggregate_models else 1.4, "dash": "dash"},
+                        hovertemplate=(
+                            f"{baseline_label}<br>"
+                            f"Model: {baseline_row['model']}<br>"
+                            f"{metric_label}: {baseline_row[percent_col]:.3f}%"
+                            "<extra></extra>"
+                        ),
+                    ),
+                    row=row,
+                    col=col,
+                )
+        tickangle = 30 if len(x_keys) > 4 else 0
+        fig.update_xaxes(
+            title_text="",
+            tickmode="array",
+            tickvals=list(range(len(x_keys))),
+            ticktext=[x_labels[key] for key in x_keys],
+            tickangle=tickangle,
+            tickfont={"size": 8},
+            row=row,
+            col=col,
+        )
+        if col == 1:
+            fig.update_yaxes(title_text=y_axis_title, row=row, col=col)
+    fig.update_annotations(font_size=9, yshift=6)
+    height = 360 if len(facets) == 1 else 360 * rows + 90
+    return table3_base_layout(fig, height=height, y_range=y_range)
+
+
+def tight_table3_y_range(
+    summary: pd.DataFrame,
+    model_order: list[str],
+    condition_bases: list[str] | None = None,
+    minimum_span: float = 28.0,
+    padding: float = 5.0,
+) -> list[float] | None:
+    filtered = summary[summary["model_key"].isin(model_order)].copy()
+    if condition_bases is not None:
+        filtered = filtered[filtered["condition_base"].isin(condition_bases)]
+    values = pd.concat(
+        [
+            pd.to_numeric(filtered["sycophancy_ci_low"], errors="coerce"),
+            pd.to_numeric(filtered["sycophancy_ci_high"], errors="coerce"),
+            pd.to_numeric(filtered["sycophancy_percent"], errors="coerce"),
+        ],
+        ignore_index=True,
+    ).dropna()
+    if values.empty:
+        return None
+
+    low = float(values.min()) - padding
+    high = float(values.max()) + padding
+    span = high - low
+    if span < minimum_span:
+        center = (low + high) / 2
+        low = center - minimum_span / 2
+        high = center + minimum_span / 2
+
+    low = max(0.0, low)
+    high = min(100.0, high)
+    if high - low < minimum_span:
+        if low == 0.0:
+            high = min(100.0, minimum_span)
+        elif high == 100.0:
+            low = max(0.0, 100.0 - minimum_span)
+
+    return [low, high]
 
 
 def add_table3_x_bands(fig: go.Figure, row: int, bands: list[dict[str, object]]) -> None:
@@ -1530,8 +2337,16 @@ def add_table3_band_legend(
 def plot_table3_paneled_by_placement(
     summary: pd.DataFrame,
     model_order: list[str] | None = None,
+    condition_bases: list[str] | None = None,
 ) -> go.Figure:
     model_order = model_order or TABLE3_MODEL_ORDER
+    condition_bases = condition_bases or TABLE3_CONDITION_BASES
+    condition_index = {
+        condition_base: index for index, condition_base in enumerate(condition_bases)
+    }
+    ordered = summary[summary["condition_base"].isin(condition_bases)].copy()
+    ordered["condition_index_filtered"] = ordered["condition_base"].map(condition_index)
+    bands = decision_owner_bands_for_conditions(condition_bases)
     fig = make_subplots(
         rows=3,
         cols=1,
@@ -1540,8 +2355,8 @@ def plot_table3_paneled_by_placement(
         vertical_spacing=0.11,
     )
     for row, placement_key in enumerate(TABLE3_PLACEMENTS, start=1):
-        sub = summary[summary["placement_key"].eq(placement_key)]
-        add_table3_x_bands(fig, row, TABLE3_DECISION_OWNER_BANDS)
+        sub = ordered[ordered["placement_key"].eq(placement_key)]
+        add_table3_x_bands(fig, row, bands)
         for model_key in model_order:
             add_table3_model_trace(
                 fig,
@@ -1549,18 +2364,18 @@ def plot_table3_paneled_by_placement(
                 model_key,
                 row=row,
                 col=1,
-                x_col="condition_index",
+                x_col="condition_index_filtered",
                 hover_x_col="condition_label",
                 showlegend=row == 1,
                 model_order=model_order,
             )
         if row == 1:
-            add_table3_band_legend(fig, TABLE3_DECISION_OWNER_BANDS, "owner")
+            add_table3_band_legend(fig, bands, "owner")
         fig.update_xaxes(
             title_text="",
             tickmode="array",
-            tickvals=list(range(len(TABLE3_CONDITION_BASES))),
-            ticktext=[TABLE3_CONDITION_LABELS[base] for base in TABLE3_CONDITION_BASES],
+            tickvals=list(range(len(condition_bases))),
+            ticktext=[TABLE3_CONDITION_LABELS[base] for base in condition_bases],
             tickangle=28,
             row=row,
             col=1,
@@ -1573,14 +2388,22 @@ def plot_table3_paneled_by_placement(
 def plot_table3_paneled_by_placement_ta_order(
     summary: pd.DataFrame,
     model_order: list[str] | None = None,
+    condition_bases: list[str] | None = None,
 ) -> go.Figure:
     model_order = model_order or TABLE3_MODEL_ORDER
+    condition_bases = condition_bases or TABLE3_CONDITION_BASES
+    ordered_condition_bases = [
+        condition_base
+        for condition_base in TABLE3_CONDITION_BASES_BY_TA
+        if condition_base in set(condition_bases)
+    ]
     ta_index = {
         condition_base: index
-        for index, condition_base in enumerate(TABLE3_CONDITION_BASES_BY_TA)
+        for index, condition_base in enumerate(ordered_condition_bases)
     }
-    ordered = summary.copy()
+    ordered = summary[summary["condition_base"].isin(ordered_condition_bases)].copy()
     ordered["condition_index_ta"] = ordered["condition_base"].map(ta_index)
+    bands = target_actor_bands_for_conditions(ordered_condition_bases)
     fig = make_subplots(
         rows=3,
         cols=1,
@@ -1590,7 +2413,7 @@ def plot_table3_paneled_by_placement_ta_order(
     )
     for row, placement_key in enumerate(TABLE3_PLACEMENTS, start=1):
         sub = ordered[ordered["placement_key"].eq(placement_key)]
-        add_table3_x_bands(fig, row, TABLE3_TARGET_ACTOR_BANDS)
+        add_table3_x_bands(fig, row, bands)
         for model_key in model_order:
             add_table3_model_trace(
                 fig,
@@ -1604,13 +2427,13 @@ def plot_table3_paneled_by_placement_ta_order(
                 model_order=model_order,
             )
         if row == 1:
-            add_table3_band_legend(fig, TABLE3_TARGET_ACTOR_BANDS, "target")
+            add_table3_band_legend(fig, bands, "target")
         fig.update_xaxes(
             title_text="",
             tickmode="array",
-            tickvals=list(range(len(TABLE3_CONDITION_BASES_BY_TA))),
+            tickvals=list(range(len(ordered_condition_bases))),
             ticktext=[
-                TABLE3_CONDITION_LABELS[base] for base in TABLE3_CONDITION_BASES_BY_TA
+                TABLE3_CONDITION_LABELS[base] for base in ordered_condition_bases
             ],
             tickangle=28,
             row=row,
@@ -1624,19 +2447,23 @@ def plot_table3_paneled_by_placement_ta_order(
 def plot_table3_paneled_by_condition(
     summary: pd.DataFrame,
     model_order: list[str] | None = None,
+    condition_bases: list[str] | None = None,
 ) -> go.Figure:
     model_order = model_order or TABLE3_MODEL_ORDER
+    condition_bases = condition_bases or TABLE3_CONDITION_BASES
+    cols = 4
+    rows = max(1, (len(condition_bases) + cols - 1) // cols)
     fig = make_subplots(
-        rows=4,
-        cols=4,
-        subplot_titles=[TABLE3_CONDITION_LABELS[base] for base in TABLE3_CONDITION_BASES],
+        rows=rows,
+        cols=cols,
+        subplot_titles=[TABLE3_CONDITION_LABELS[base] for base in condition_bases],
         shared_yaxes=True,
         vertical_spacing=0.09,
         horizontal_spacing=0.045,
     )
-    for index, condition_base in enumerate(TABLE3_CONDITION_BASES):
-        row = index // 4 + 1
-        col = index % 4 + 1
+    for index, condition_base in enumerate(condition_bases):
+        row = index // cols + 1
+        col = index % cols + 1
         sub = summary[summary["condition_base"].eq(condition_base)]
         for model_key in model_order:
             add_table3_model_trace(
@@ -1663,7 +2490,248 @@ def plot_table3_paneled_by_condition(
         if col == 1:
             fig.update_yaxes(title_text="utility %", row=row, col=col)
     fig.update_annotations(font_size=9, yshift=6)
-    return table3_base_layout(fig, height=1040)
+    return table3_base_layout(fig, height=1040 if len(condition_bases) == 16 else 860)
+
+
+def elephant_hover_template(x_label: str) -> str:
+    return (
+        f"{x_label}: %{{customdata[0]}}<br>"
+        "Model: %{customdata[1]}<br>"
+        "Sycophancy: %{customdata[7]:.3f}%<br>"
+        "95% bootstrap CI: %{customdata[2]:.3f}-%{customdata[3]:.3f}%<br>"
+        "Sycophantic pairs: %{customdata[4]:.0f} / %{customdata[5]:.0f} parsed<br>"
+        "Unparsed pairs: %{customdata[6]:.0f}"
+        "<extra></extra>"
+    )
+
+
+def add_elephant_model_trace(
+    fig: go.Figure,
+    sub: pd.DataFrame,
+    model_key: str,
+    row: int,
+    col: int,
+    x_col: str,
+    hover_x_col: str,
+    showlegend: bool,
+    model_order: list[str] | None = None,
+) -> None:
+    model_sub = sub[sub["model_key"].eq(model_key)].sort_values(x_col)
+    if model_sub.empty:
+        return
+    meta = ELEPHANT_MODELS[model_key]
+    x = model_sub[x_col].astype(float) + table3_jitter(model_key, model_order)
+    y = pd.to_numeric(model_sub["sycophancy_percent"], errors="coerce")
+    err_hi = pd.to_numeric(model_sub["sycophancy_ci_high"], errors="coerce") - y
+    err_lo = y - pd.to_numeric(model_sub["sycophancy_ci_low"], errors="coerce")
+    custom = np.stack(
+        [
+            model_sub[hover_x_col],
+            model_sub["model"],
+            pd.to_numeric(model_sub["sycophancy_ci_low"], errors="coerce"),
+            pd.to_numeric(model_sub["sycophancy_ci_high"], errors="coerce"),
+            pd.to_numeric(model_sub["sycophantic_pairs"], errors="coerce"),
+            pd.to_numeric(model_sub["parsed_pairs"], errors="coerce"),
+            pd.to_numeric(model_sub["unparsed_pairs"], errors="coerce"),
+            pd.to_numeric(model_sub["sycophancy_percent"], errors="coerce"),
+        ],
+        axis=-1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=y,
+            customdata=custom,
+            mode="lines+markers",
+            name=meta["label"],
+            legendgroup=f"elephant-{model_key}",
+            showlegend=showlegend,
+            line={"color": meta["color"], "width": 2.0},
+            marker={"color": meta["color"], "size": 5.5},
+            error_y={
+                "type": "data",
+                "array": err_hi.clip(lower=0),
+                "arrayminus": err_lo.clip(lower=0),
+                "visible": True,
+                "thickness": 1,
+                "width": 4,
+                "color": hex_to_rgba(meta["color"], 0.34),
+            },
+            opacity=0.95,
+            connectgaps=False,
+            hovertemplate=elephant_hover_template(
+                "Condition" if x_col == "condition_index" else "Placement"
+            ),
+        ),
+        row=row,
+        col=col,
+    )
+
+
+def plot_elephant_paneled_by_placement(
+    summary: pd.DataFrame,
+    model_order: list[str] | None = None,
+    condition_bases: list[str] | None = None,
+    y_range: list[float] | None = None,
+) -> go.Figure:
+    model_order = model_order or ELEPHANT_MODEL_ORDER
+    condition_bases = condition_bases or TABLE3_CONDITION_BASES
+    condition_index = {
+        condition_base: index for index, condition_base in enumerate(condition_bases)
+    }
+    ordered = summary[summary["condition_base"].isin(condition_bases)].copy()
+    ordered["condition_index_filtered"] = ordered["condition_base"].map(condition_index)
+    bands = decision_owner_bands_for_conditions(condition_bases)
+    fig = make_subplots(
+        rows=3,
+        cols=1,
+        subplot_titles=[meta["label"] for meta in TABLE3_PLACEMENTS.values()],
+        shared_yaxes=False,
+        vertical_spacing=0.11,
+    )
+    for row, placement_key in enumerate(TABLE3_PLACEMENTS, start=1):
+        sub = ordered[ordered["placement_key"].eq(placement_key)]
+        add_table3_x_bands(fig, row, bands)
+        for model_key in model_order:
+            add_elephant_model_trace(
+                fig,
+                sub,
+                model_key,
+                row=row,
+                col=1,
+                x_col="condition_index_filtered",
+                hover_x_col="condition_label",
+                showlegend=row == 1,
+                model_order=model_order,
+            )
+        if row == 1:
+            add_table3_band_legend(fig, bands, "owner")
+        fig.update_xaxes(
+            title_text="",
+            tickmode="array",
+            tickvals=list(range(len(condition_bases))),
+            ticktext=[TABLE3_CONDITION_LABELS[base] for base in condition_bases],
+            tickangle=28,
+            row=row,
+            col=1,
+        )
+        fig.update_yaxes(title_text="sycophancy %", row=row, col=1)
+    fig.update_annotations(yshift=12)
+    return table3_base_layout(fig, height=1180, y_range=y_range)
+
+
+def plot_elephant_paneled_by_placement_ta_order(
+    summary: pd.DataFrame,
+    model_order: list[str] | None = None,
+    condition_bases: list[str] | None = None,
+    y_range: list[float] | None = None,
+) -> go.Figure:
+    model_order = model_order or ELEPHANT_MODEL_ORDER
+    condition_bases = condition_bases or TABLE3_CONDITION_BASES
+    ordered_condition_bases = [
+        condition_base
+        for condition_base in TABLE3_CONDITION_BASES_BY_TA
+        if condition_base in set(condition_bases)
+    ]
+    ta_index = {
+        condition_base: index
+        for index, condition_base in enumerate(ordered_condition_bases)
+    }
+    ordered = summary[summary["condition_base"].isin(ordered_condition_bases)].copy()
+    ordered["condition_index_ta"] = ordered["condition_base"].map(ta_index)
+    bands = target_actor_bands_for_conditions(ordered_condition_bases)
+    fig = make_subplots(
+        rows=3,
+        cols=1,
+        subplot_titles=[meta["label"] for meta in TABLE3_PLACEMENTS.values()],
+        shared_yaxes=False,
+        vertical_spacing=0.11,
+    )
+    for row, placement_key in enumerate(TABLE3_PLACEMENTS, start=1):
+        sub = ordered[ordered["placement_key"].eq(placement_key)]
+        add_table3_x_bands(fig, row, bands)
+        for model_key in model_order:
+            add_elephant_model_trace(
+                fig,
+                sub,
+                model_key,
+                row=row,
+                col=1,
+                x_col="condition_index_ta",
+                hover_x_col="condition_label",
+                showlegend=row == 1,
+                model_order=model_order,
+            )
+        if row == 1:
+            add_table3_band_legend(fig, bands, "target")
+        fig.update_xaxes(
+            title_text="",
+            tickmode="array",
+            tickvals=list(range(len(ordered_condition_bases))),
+            ticktext=[
+                TABLE3_CONDITION_LABELS[base] for base in ordered_condition_bases
+            ],
+            tickangle=28,
+            row=row,
+            col=1,
+        )
+        fig.update_yaxes(title_text="sycophancy %", row=row, col=1)
+    fig.update_annotations(yshift=12)
+    return table3_base_layout(fig, height=1180, y_range=y_range)
+
+
+def plot_elephant_paneled_by_condition(
+    summary: pd.DataFrame,
+    model_order: list[str] | None = None,
+    condition_bases: list[str] | None = None,
+    y_range: list[float] | None = None,
+) -> go.Figure:
+    model_order = model_order or ELEPHANT_MODEL_ORDER
+    condition_bases = condition_bases or TABLE3_CONDITION_BASES
+    cols = 4
+    rows = max(1, (len(condition_bases) + cols - 1) // cols)
+    fig = make_subplots(
+        rows=rows,
+        cols=cols,
+        subplot_titles=[TABLE3_CONDITION_LABELS[base] for base in condition_bases],
+        shared_yaxes=True,
+        vertical_spacing=0.09,
+        horizontal_spacing=0.045,
+    )
+    for index, condition_base in enumerate(condition_bases):
+        row = index // cols + 1
+        col = index % cols + 1
+        sub = summary[summary["condition_base"].eq(condition_base)]
+        for model_key in model_order:
+            add_elephant_model_trace(
+                fig,
+                sub,
+                model_key,
+                row=row,
+                col=col,
+                x_col="placement_index",
+                hover_x_col="placement_short",
+                showlegend=index == 0,
+                model_order=model_order,
+            )
+        fig.update_xaxes(
+            title_text="",
+            tickmode="array",
+            tickvals=list(range(len(TABLE3_PLACEMENTS))),
+            ticktext=TABLE3_PLACEMENT_AXIS_LABELS,
+            tickangle=0,
+            tickfont={"size": 8},
+            row=row,
+            col=col,
+        )
+        if col == 1:
+            fig.update_yaxes(title_text="sycophancy %", row=row, col=col)
+    fig.update_annotations(font_size=9, yshift=6)
+    return table3_base_layout(
+        fig,
+        height=1040 if len(condition_bases) == 16 else 860,
+        y_range=y_range,
+    )
 
 
 def plot_table3_grok_matrix(summary: pd.DataFrame) -> go.Figure | None:
@@ -2131,6 +3199,17 @@ def prompt_matrix_text(value: object) -> str:
     return "\n".join(compact_lines).strip()
 
 
+def render_component_html(component_html: str, height: int) -> None:
+    if hasattr(st, "iframe"):
+        st.iframe(component_html, height=height)
+        return
+
+    # Compatibility path for Streamlit builds that have no st.iframe.
+    import streamlit.components.v1 as components
+
+    components.html(component_html, height=height, scrolling=False)
+
+
 @st.cache_data(show_spinner=False)
 def build_table3_prompt_grid_payload(summary: pd.DataFrame) -> list[dict[str, object]]:
     payload = []
@@ -2190,7 +3269,12 @@ def build_table3_prompt_grid_payload(summary: pd.DataFrame) -> list[dict[str, ob
     return payload
 
 
-def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
+def render_table3_prompt_grid(
+    summary: pd.DataFrame,
+    show_axis_labels: bool = False,
+    hidden_decision_owner_values: tuple[str, ...] = (),
+    disable_llm_crosses: bool = False,
+) -> None:
     payload = [
         row
         for row in build_table3_prompt_grid_payload(summary)
@@ -2206,6 +3290,10 @@ def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
     const rows = {json.dumps(payload)};
     const axisValues = {json.dumps(TABLE3_CONDITION_AXIS_VALUES)};
     const axisLabels = {json.dumps(TABLE3_CONDITION_AXIS_LABELS)};
+    const rowAxisValues = axisValues.filter(
+      value => !{json.dumps(hidden_decision_owner_values)}.includes(value)
+    );
+    const disableLlmCrosses = {json.dumps(disable_llm_crosses)};
 
     const root = document.getElementById("prompt-grid-root");
     root.innerHTML = `
@@ -2234,6 +3322,35 @@ def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
           text-transform: uppercase;
           color: #374151;
           letter-spacing: 0;
+        }}
+        .axis-top {{
+          color: #64748b;
+          font-size: 0.58rem;
+          font-weight: 750;
+          line-height: 1;
+          margin: -1px 0 -1px 31px;
+          text-align: center;
+          text-transform: uppercase;
+        }}
+        .grid-wrap {{
+          display: grid;
+          grid-template-columns: 13px 1fr;
+          gap: 4px;
+          align-items: stretch;
+        }}
+        .axis-side {{
+          align-items: center;
+          color: #64748b;
+          display: flex;
+          font-size: 0.55rem;
+          font-weight: 750;
+          justify-content: center;
+          letter-spacing: 0;
+          line-height: 1;
+          min-height: 136px;
+          text-transform: uppercase;
+          transform: rotate(180deg);
+          writing-mode: vertical-rl;
         }}
         .grid {{
           display: grid;
@@ -2273,6 +3390,18 @@ def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
           box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.25);
           transform: translateY(-1px);
         }}
+        .cell.unavailable {{
+          background: #475569;
+          border-color: #334155;
+          box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.25);
+          cursor: not-allowed;
+          opacity: 1;
+        }}
+        .cell.unavailable:hover, .cell.unavailable:focus {{
+          border-color: #334155;
+          box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.25);
+          transform: none;
+        }}
         .preview {{
           border-top: 1px solid #e5e7eb;
           padding-top: 8px;
@@ -2308,7 +3437,11 @@ def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
       </style>
       <div class="panel">
         <div class="panel-title">Prompt grid</div>
-        <div class="grid" id="grid"></div>
+        {'<div class="axis-top">Target actor</div>' if show_axis_labels else ''}
+        <div class="grid-wrap">
+          {'<div class="axis-side">Decision owner</div>' if show_axis_labels else ''}
+          <div class="grid" id="grid"></div>
+        </div>
         <div class="preview">
           <div class="preview-title" id="preview-title"></div>
           <div class="preview-sub" id="preview-sub"></div>
@@ -2330,18 +3463,24 @@ def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
     addLabel("");
     axisValues.forEach(value => addLabel(axisLabels[value]));
 
-    axisValues.forEach(rowValue => {{
+    rowAxisValues.forEach(rowValue => {{
       addLabel(axisLabels[rowValue], "row-label");
       axisValues.forEach(colValue => {{
         const item = byCondition.get(`${{colValue}}_${{rowValue}}`);
+        const unavailable = disableLlmCrosses
+          && colValue === "llm"
+          && !(rowValue === "llm" && colValue === "llm");
         const button = document.createElement("button");
-        button.className = "cell";
+        button.className = unavailable ? "cell unavailable" : "cell";
         button.type = "button";
+        button.disabled = unavailable;
         if (item) {{
           button.setAttribute("aria-label", item.conditionLabel);
-          button.title = item.conditionLabel;
-          button.addEventListener("mouseenter", () => updatePreview(item));
-          button.addEventListener("focus", () => updatePreview(item));
+          button.title = unavailable ? `${{item.conditionLabel}} unavailable` : item.conditionLabel;
+          if (!unavailable) {{
+            button.addEventListener("mouseenter", () => updatePreview(item));
+            button.addEventListener("focus", () => updatePreview(item));
+          }}
         }}
         grid.appendChild(button);
       }});
@@ -2359,7 +3498,239 @@ def render_table3_prompt_grid(summary: pd.DataFrame) -> None:
     updatePreview(rows[0]);
     </script>
     """
-    st.iframe(component_html, height=875)
+    render_component_html(component_html, height=875)
+
+
+def render_elephant_prompt_grid(
+    show_axis_labels: bool = True,
+    hidden_decision_owner_values: tuple[str, ...] = (),
+    disable_llm_crosses: bool = False,
+) -> None:
+    payload = []
+    for row_value in TABLE3_CONDITION_AXIS_VALUES:
+        for col_value in TABLE3_CONDITION_AXIS_VALUES:
+            condition_base = f"{col_value}_{row_value}"
+            payload.append(
+                {
+                    "conditionBase": condition_base,
+                    "conditionLabel": TABLE3_CONDITION_LABELS[condition_base],
+                    "prompt": ELEPHANT_PROMPT_MATRIX[row_value][col_value],
+                }
+            )
+
+    component_html = f"""
+    <div id="elephant-prompt-grid-root"></div>
+    <script>
+    const rows = {json.dumps(payload)};
+    const axisValues = {json.dumps(TABLE3_CONDITION_AXIS_VALUES)};
+    const axisLabels = {json.dumps(TABLE3_CONDITION_AXIS_LABELS)};
+    const rowAxisValues = axisValues.filter(
+      value => !{json.dumps(hidden_decision_owner_values)}.includes(value)
+    );
+    const disableLlmCrosses = {json.dumps(disable_llm_crosses)};
+
+    const root = document.getElementById("elephant-prompt-grid-root");
+    root.innerHTML = `
+      <style>
+        * {{ box-sizing: border-box; }}
+        body {{
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+          color: #111827;
+          background: #fff;
+        }}
+        .panel {{
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 9px;
+          background: #fff;
+          height: 805px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }}
+        .panel-title {{
+          font-size: 0.68rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: #374151;
+          letter-spacing: 0;
+        }}
+        .axis-top {{
+          color: #64748b;
+          font-size: 0.58rem;
+          font-weight: 750;
+          line-height: 1;
+          margin: -1px 0 -1px 31px;
+          text-align: center;
+          text-transform: uppercase;
+        }}
+        .grid-wrap {{
+          display: grid;
+          grid-template-columns: 13px 1fr;
+          gap: 4px;
+          align-items: stretch;
+        }}
+        .axis-side {{
+          align-items: center;
+          color: #64748b;
+          display: flex;
+          font-size: 0.55rem;
+          font-weight: 750;
+          justify-content: center;
+          letter-spacing: 0;
+          line-height: 1;
+          min-height: 136px;
+          text-transform: uppercase;
+          transform: rotate(180deg);
+          writing-mode: vertical-rl;
+        }}
+        .grid {{
+          display: grid;
+          grid-template-columns: 23px repeat(4, 1fr);
+          gap: 4px;
+          align-items: stretch;
+        }}
+        .grid-label {{
+          min-height: 21px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #4b5563;
+          font-size: 0.58rem;
+          font-weight: 700;
+          line-height: 1;
+        }}
+        .row-label {{
+          justify-content: flex-end;
+          padding-right: 3px;
+        }}
+        .cell {{
+          appearance: none;
+          border: 1px solid #d1d5db;
+          background: #f9fafb;
+          color: #111827;
+          aspect-ratio: 1;
+          border-radius: 4px;
+          padding: 0;
+          cursor: pointer;
+          font: inherit;
+          transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+        }}
+        .cell:hover, .cell:focus {{
+          outline: none;
+          border-color: #2563eb;
+          box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.25);
+          transform: translateY(-1px);
+        }}
+        .cell.unavailable {{
+          background: #475569;
+          border-color: #334155;
+          box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.25);
+          cursor: not-allowed;
+          opacity: 1;
+        }}
+        .cell.unavailable:hover, .cell.unavailable:focus {{
+          border-color: #334155;
+          box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.25);
+          transform: none;
+        }}
+        .preview {{
+          border-top: 1px solid #e5e7eb;
+          padding-top: 8px;
+          min-height: 0;
+          overflow: auto;
+          flex: 1;
+        }}
+        .preview-title {{
+          font-size: 0.78rem;
+          font-weight: 750;
+          line-height: 1.25;
+          margin-bottom: 3px;
+        }}
+        .preview-sub {{
+          color: #6b7280;
+          font-size: 0.66rem;
+          line-height: 1.3;
+          margin-bottom: 8px;
+        }}
+        pre {{
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          margin: 0;
+          border: 1px solid #e5e7eb;
+          background: #f8fafc;
+          border-radius: 6px;
+          padding: 7px;
+          color: #111827;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+          font-size: 0.63rem;
+          line-height: 1.35;
+        }}
+      </style>
+      <div class="panel">
+        <div class="panel-title">Prompt grid</div>
+        {'<div class="axis-top">Target actor</div>' if show_axis_labels else ''}
+        <div class="grid-wrap">
+          {'<div class="axis-side">Decision owner</div>' if show_axis_labels else ''}
+          <div class="grid" id="grid"></div>
+        </div>
+        <div class="preview">
+          <div class="preview-title" id="preview-title"></div>
+          <div class="preview-sub" id="preview-sub"></div>
+          <pre id="prompt-text"></pre>
+        </div>
+      </div>
+    `;
+
+    const grid = root.querySelector("#grid");
+    const byCondition = new Map(rows.map(row => [row.conditionBase, row]));
+
+    function addLabel(text, extraClass = "") {{
+      const div = document.createElement("div");
+      div.className = `grid-label ${{extraClass}}`;
+      div.textContent = text;
+      grid.appendChild(div);
+    }}
+
+    addLabel("");
+    axisValues.forEach(value => addLabel(axisLabels[value]));
+
+    rowAxisValues.forEach(rowValue => {{
+      addLabel(axisLabels[rowValue], "row-label");
+      axisValues.forEach(colValue => {{
+        const item = byCondition.get(`${{colValue}}_${{rowValue}}`);
+        const unavailable = disableLlmCrosses
+          && colValue === "llm"
+          && !(rowValue === "llm" && colValue === "llm");
+        const button = document.createElement("button");
+        button.className = unavailable ? "cell unavailable" : "cell";
+        button.type = "button";
+        button.disabled = unavailable;
+        if (item) {{
+          button.setAttribute("aria-label", item.conditionLabel);
+          button.title = unavailable ? `${{item.conditionLabel}} unavailable` : item.conditionLabel;
+          if (!unavailable) {{
+            button.addEventListener("mouseenter", () => updatePreview(item));
+            button.addEventListener("focus", () => updatePreview(item));
+          }}
+        }}
+        grid.appendChild(button);
+      }});
+    }});
+
+    function updatePreview(item) {{
+      if (!item) return;
+      root.querySelector("#preview-title").textContent = item.conditionLabel;
+      root.querySelector("#preview-sub").textContent = item.conditionBase;
+      root.querySelector("#prompt-text").textContent = item.prompt || "(empty)";
+    }}
+
+    updatePreview(rows[0]);
+    </script>
+    """
+    render_component_html(component_html, height=875)
 
 
 def render_table3_prompt_matrix(summary: pd.DataFrame) -> None:
@@ -2484,6 +3855,303 @@ def render_airisk_prompt_matrix() -> None:
     )
 
 
+def render_elephant_models_section(
+    graph_view_key: str = "elephant_graph_view",
+    chart_key: str = "elephant_graph_chart",
+    show_prompt_grid_axis_labels: bool = True,
+    prompt_column_width: float = 0.16,
+    prompt_grid_hidden_decision_owners: tuple[str, ...] = (),
+    prompt_grid_disable_llm_crosses: bool = False,
+    condition_bases: list[str] | None = None,
+    use_tight_y_axis: bool = False,
+    show_col_collapse_controls: bool = False,
+) -> None:
+    summary = build_elephant_summary()
+    if summary.empty:
+        st.warning("No Elephant model rows found yet.")
+        return
+    model_order = [
+        model_key
+        for model_key in ELEPHANT_MODEL_ORDER
+        if model_key in set(summary["model_key"])
+    ]
+    with st.container(horizontal_alignment="center"):
+        graph_options = (
+            COL_GRAPH_VIEWS
+            if show_col_collapse_controls
+            else [
+                "By condition",
+                "PDO-ordered placement",
+                "TA-ordered placement",
+            ]
+        )
+        view_col, y_axis_col = st.columns(
+            [0.78, 0.22],
+            gap="medium",
+            vertical_alignment="bottom",
+        )
+        with view_col:
+            view = st.segmented_control(
+                "Elephant graph view",
+                graph_options,
+                default="By condition",
+                label_visibility="collapsed",
+                key=graph_view_key,
+                width="stretch",
+            )
+        with y_axis_col:
+            y_axis_max = st.number_input(
+                "Y-axis max",
+                min_value=0.0,
+                max_value=100.0,
+                value=50.0,
+                step=5.0,
+                help="Set to 0 to use the automatic scale.",
+                key=f"{graph_view_key}_y_axis_max",
+                width="stretch",
+            )
+        aggregate_models = False
+        show_aggregate_ci = False
+        show_model_range = False
+        show_baseline = False
+        if show_col_collapse_controls:
+            option_spacer_left, option_col, option_spacer_right = st.columns(
+                [0.18, 0.64, 0.18],
+                gap="small",
+            )
+            with option_col:
+                with st.container(
+                    horizontal=True,
+                    horizontal_alignment="center",
+                    vertical_alignment="center",
+                    gap="medium",
+                ):
+                    aggregate_models = st.checkbox(
+                        "Aggregate models",
+                        value=False,
+                        key=f"{graph_view_key}_aggregate_models",
+                    )
+                    show_aggregate_ci = st.checkbox(
+                        "Show 95% CI",
+                        value=False,
+                        key=f"{graph_view_key}_show_aggregate_ci",
+                        disabled=not aggregate_models,
+                    )
+                    show_model_range = st.checkbox(
+                        "Show model range",
+                        value=False,
+                        key=f"{graph_view_key}_show_model_range",
+                        disabled=not aggregate_models,
+                    )
+                    show_baseline = st.checkbox(
+                        f"Show {ELEPHANT_BASELINE_LABEL}",
+                        value=False,
+                        key=f"{graph_view_key}_show_baseline",
+                    )
+        st.markdown(
+            """
+            <div style="text-align:center; color:#9ca3af; font-size:0.95rem; margin-top:0.45rem; margin-bottom:1.75rem;">
+                Condition labels are ordered: target actor x decision owner.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    y_range = (
+        tight_table3_y_range(summary, model_order, condition_bases)
+        if use_tight_y_axis
+        else None
+    )
+    if y_axis_max > 0:
+        y_range = [0, y_axis_max]
+    if show_col_collapse_controls:
+        active_condition_bases = condition_bases or TABLE3_CONDITION_BASES
+        collapsed, spec = build_collapsed_metric_summary(
+            summary,
+            view=view,
+            condition_bases=active_condition_bases,
+            model_order=model_order,
+            model_meta=ELEPHANT_MODELS,
+            numerator_col="sycophantic_pairs",
+            denominator_col="parsed_pairs",
+            unparsed_col="unparsed_pairs",
+            percent_col="sycophancy_percent",
+            metric_seed="elephant-col",
+            aggregate_models=aggregate_models,
+        )
+        baseline = (
+            build_elephant_baseline_summary()
+            if show_baseline
+            else pd.DataFrame()
+        )
+        fig = plot_collapsed_metric_summary(
+            collapsed,
+            spec,
+            model_order=model_order,
+            percent_col="sycophancy_percent",
+            metric_label="Sycophancy",
+            y_axis_title="sycophancy %",
+            y_range=y_range,
+            aggregate_models=aggregate_models,
+            show_aggregate_ci=show_aggregate_ci,
+            show_model_range=show_model_range,
+            baseline=baseline,
+            baseline_label=ELEPHANT_BASELINE_LABEL,
+        )
+    elif view == "PDO-ordered placement":
+        fig = plot_elephant_paneled_by_placement(
+            summary,
+            model_order=model_order,
+            condition_bases=condition_bases,
+            y_range=y_range,
+        )
+    elif view == "TA-ordered placement":
+        fig = plot_elephant_paneled_by_placement_ta_order(
+            summary,
+            model_order=model_order,
+            condition_bases=condition_bases,
+            y_range=y_range,
+        )
+    else:
+        fig = plot_elephant_paneled_by_condition(
+            summary,
+            model_order=model_order,
+            condition_bases=condition_bases,
+            y_range=y_range,
+        )
+    prompt_col, chart_col = st.columns(
+        [prompt_column_width, 1 - prompt_column_width],
+        gap="small",
+    )
+    with prompt_col:
+        render_elephant_prompt_grid(
+            show_axis_labels=show_prompt_grid_axis_labels,
+            hidden_decision_owner_values=prompt_grid_hidden_decision_owners,
+            disable_llm_crosses=prompt_grid_disable_llm_crosses,
+        )
+    with chart_col:
+        st.plotly_chart(fig, width="stretch", theme=None, key=chart_key)
+
+
+def render_deo_consq_models_section(
+    summary: pd.DataFrame,
+    model_order: list[str],
+    graph_view_key: str,
+    chart_key: str,
+    show_prompt_grid_axis_labels: bool = False,
+    prompt_column_width: float = 0.16,
+    prompt_grid_hidden_decision_owners: tuple[str, ...] = (),
+    prompt_grid_disable_llm_crosses: bool = False,
+    condition_bases: list[str] | None = None,
+    show_col_collapse_controls: bool = False,
+) -> None:
+    with st.container(horizontal_alignment="center"):
+        graph_options = (
+            COL_GRAPH_VIEWS
+            if show_col_collapse_controls
+            else [
+                "By condition",
+                "PDO-ordered placement",
+                "TA-ordered placement",
+            ]
+        )
+        view = st.segmented_control(
+            "Graph view",
+            graph_options,
+            default="By condition",
+            label_visibility="collapsed",
+            key=graph_view_key,
+            width="stretch",
+        )
+        aggregate_models = False
+        show_aggregate_ci = False
+        show_model_range = False
+        if show_col_collapse_controls:
+            aggregate_models = st.checkbox(
+                "Aggregate models",
+                value=False,
+                key=f"{graph_view_key}_aggregate_models",
+            )
+            if aggregate_models:
+                uncertainty_cols = st.columns(2)
+                with uncertainty_cols[0]:
+                    show_aggregate_ci = st.checkbox(
+                        "Show 95% CI",
+                        value=False,
+                        key=f"{graph_view_key}_show_aggregate_ci",
+                    )
+                with uncertainty_cols[1]:
+                    show_model_range = st.checkbox(
+                        "Show model range",
+                        value=False,
+                        key=f"{graph_view_key}_show_model_range",
+                    )
+        st.markdown(
+            """
+            <div style="text-align:center; color:#9ca3af; font-size:0.95rem; margin-top:0.45rem; margin-bottom:1.75rem;">
+                Condition labels are ordered: target actor x decision owner.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    if show_col_collapse_controls:
+        active_condition_bases = condition_bases or TABLE3_CONDITION_BASES
+        collapsed, spec = build_collapsed_metric_summary(
+            summary,
+            view=view,
+            condition_bases=active_condition_bases,
+            model_order=model_order,
+            model_meta=TABLE3_MODELS,
+            numerator_col="saved_larger",
+            denominator_col="parsed_utility_rows",
+            unparsed_col="unparsed_utility_rows",
+            percent_col="utility_percent",
+            metric_seed="utility-col",
+            aggregate_models=aggregate_models,
+        )
+        fig = plot_collapsed_metric_summary(
+            collapsed,
+            spec,
+            model_order=model_order,
+            percent_col="utility_percent",
+            metric_label="Utility",
+            y_axis_title="utility %",
+            aggregate_models=aggregate_models,
+            show_aggregate_ci=show_aggregate_ci,
+            show_model_range=show_model_range,
+        )
+    elif view == "PDO-ordered placement":
+        fig = plot_table3_paneled_by_placement(
+            summary,
+            model_order=model_order,
+            condition_bases=condition_bases,
+        )
+    elif view == "TA-ordered placement":
+        fig = plot_table3_paneled_by_placement_ta_order(
+            summary,
+            model_order=model_order,
+            condition_bases=condition_bases,
+        )
+    else:
+        fig = plot_table3_paneled_by_condition(
+            summary,
+            model_order=model_order,
+            condition_bases=condition_bases,
+        )
+    prompt_col, chart_col = st.columns(
+        [prompt_column_width, 1 - prompt_column_width],
+        gap="small",
+    )
+    with prompt_col:
+        render_table3_prompt_grid(
+            summary,
+            show_axis_labels=show_prompt_grid_axis_labels,
+            hidden_decision_owner_values=prompt_grid_hidden_decision_owners,
+            disable_llm_crosses=prompt_grid_disable_llm_crosses,
+        )
+    with chart_col:
+        st.plotly_chart(fig, width="stretch", theme=None, key=chart_key)
+
+
 def render_table3_front_section() -> None:
     all_summary = build_table3_nr_summary()
     if all_summary.empty:
@@ -2497,9 +4165,19 @@ def render_table3_front_section() -> None:
     if summary.empty:
         st.warning("No complete-model Table 3 rows found yet.")
         return
-    complete_tab, grok_tab, prompt_tab, elephant_prompt_tab, airisk_prompt_tab = st.tabs(
+    (
+        deo_consq_tab,
+        col_deo_consq_tab,
+        col_elephant_tab,
+        grok_tab,
+        prompt_tab,
+        elephant_prompt_tab,
+        airisk_prompt_tab,
+    ) = st.tabs(
         [
-            "Complete models",
+            "deo/consq (old)",
+            "Deo/Consq",
+            "elephant",
             "Grok sample",
             "DEO/ConSQ prompt matrix",
             "Elephant prompt matrix",
@@ -2507,42 +4185,40 @@ def render_table3_front_section() -> None:
         ]
     )
 
-    with complete_tab:
-        with st.container(horizontal_alignment="center"):
-            view = st.segmented_control(
-                "Graph view",
-                [
-                    "By condition",
-                    "PDO-ordered placement",
-                    "TA-ordered placement",
-                ],
-                default="By condition",
-                label_visibility="collapsed",
-                key="complete_graph_view",
-                width="content",
-            )
-            st.markdown(
-                """
-                <div style="text-align:center; color:#9ca3af; font-size:0.95rem; margin-top:0.45rem; margin-bottom:1.75rem;">
-                    Condition labels are ordered: target actor x decision owner.
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        if view == "PDO-ordered placement":
-            fig = plot_table3_paneled_by_placement(summary, model_order=model_order)
-        elif view == "TA-ordered placement":
-            fig = plot_table3_paneled_by_placement_ta_order(
-                summary,
-                model_order=model_order,
-            )
-        else:
-            fig = plot_table3_paneled_by_condition(summary, model_order=model_order)
-        prompt_col, chart_col = st.columns([0.16, 0.84], gap="small")
-        with prompt_col:
-            render_table3_prompt_grid(summary)
-        with chart_col:
-            st.plotly_chart(fig, width="stretch", theme=None)
+    with deo_consq_tab:
+        render_deo_consq_models_section(
+            summary,
+            model_order=model_order,
+            graph_view_key="complete_graph_view",
+            chart_key="complete_graph_chart",
+            show_prompt_grid_axis_labels=True,
+        )
+
+    with col_deo_consq_tab:
+        render_deo_consq_models_section(
+            summary,
+            model_order=model_order,
+            graph_view_key="col_deo_consq_graph_view",
+            chart_key="col_deo_consq_graph_chart",
+            show_prompt_grid_axis_labels=True,
+            prompt_column_width=0.19,
+            prompt_grid_hidden_decision_owners=("difuser",),
+            prompt_grid_disable_llm_crosses=True,
+            condition_bases=COL_CONDITION_BASES,
+            show_col_collapse_controls=True,
+        )
+
+    with col_elephant_tab:
+        render_elephant_models_section(
+            graph_view_key="col_elephant_graph_view",
+            chart_key="col_elephant_graph_chart",
+            show_prompt_grid_axis_labels=True,
+            prompt_column_width=0.19,
+            prompt_grid_hidden_decision_owners=("difuser",),
+            prompt_grid_disable_llm_crosses=True,
+            condition_bases=COL_CONDITION_BASES,
+            show_col_collapse_controls=True,
+        )
 
     with grok_tab:
         grok_summary = all_summary[all_summary["model_key"].eq("grok")].copy()
@@ -2559,7 +4235,7 @@ def render_table3_front_section() -> None:
                 default="Decision-owner bands",
                 label_visibility="collapsed",
                 key="grok_band_view",
-                width="content",
+                width="stretch",
             )
             st.markdown(
                 """

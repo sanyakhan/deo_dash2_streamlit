@@ -1,6 +1,6 @@
-# DEO/ConSQ Prompt Dashboard
+# withelephantdash
 
-This repository contains a deployable Streamlit version of the DEO/ConSQ prompt dashboard.
+This repository contains a deployable Streamlit dashboard for DEO/ConSQ and Elephant prompting protocol results.
 
 ## Run locally
 
