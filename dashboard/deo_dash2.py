@@ -625,32 +625,32 @@ def css() -> None:
         div[data-testid="stButtonGroup"] {
             display: flex;
             justify-content: center;
-            margin: 0 auto .85rem;
+            margin: 0 auto .35rem;
             width: 100%;
         }
         div[data-testid="stButtonGroup"] [role="radiogroup"] {
             background: #f8fafc !important;
             border: 1px solid #e5e7eb !important;
-            border-radius: 8px !important;
+            border-radius: 6px !important;
             box-shadow: inset 0 0 0 1px #f1f5f9;
             display: grid !important;
-            grid-template-columns: repeat(3, minmax(130px, 1fr));
-            gap: 4px;
+            grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+            gap: 2px;
             max-width: min(100%, 1280px);
             margin: 0 auto;
-            padding: 4px;
+            padding: 2px;
             width: 100%;
-            overflow-x: auto;
+            overflow-x: visible;
         }
         div[data-testid="stButtonGroup"] button,
         div[data-testid="stButtonGroup"] button[data-variant="segmented_control"] {
             background: #f8fafc !important;
             color: var(--ink) !important;
             border: 0 !important;
-            border-radius: 6px !important;
+            border-radius: 4px !important;
             box-shadow: none !important;
-            min-height: 2.45rem;
-            padding: .2rem .55rem;
+            min-height: 1.72rem;
+            padding: .04rem .32rem;
             outline: none !important;
             transition: background .14s ease, box-shadow .14s ease;
         }
@@ -690,9 +690,10 @@ def css() -> None:
         div[data-testid="stButtonGroup"] button span,
         div[data-testid="stButtonGroup"] button[data-variant="segmented_control"] p {
             color: var(--ink) !important;
-            font-size: .76rem;
+            font-size: .70rem;
             font-weight: 700;
-            white-space: nowrap;
+            line-height: 1.08;
+            white-space: normal;
         }
         .legend {
             display: flex;
