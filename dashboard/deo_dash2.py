@@ -307,7 +307,9 @@ TABLE3_MODELS = {
 }
 TABLE3_MODEL_ORDER = list(TABLE3_MODELS)
 COMPLETE_TABLE3_MODEL_ORDER = [
-    model_key for model_key in TABLE3_MODEL_ORDER if not TABLE3_MODELS[model_key]["sample"]
+    model_key
+    for model_key in TABLE3_MODEL_ORDER
+    if not TABLE3_MODELS[model_key]["sample"] and model_key != "kimi"
 ]
 ELEPHANT_RESULTS_CSV = ROOT / "artifacts" / "elephant_syc" / "model_sycophancy_scored.csv"
 ELEPHANT_BASELINE_CONDITION = "no_framing_dilemma_output"
@@ -1836,40 +1838,38 @@ def col_mode_spec(
         }
 
     if view == "Actor role":
-        role_keys = []
-        role_labels = {}
-        for actor in TABLE3_CONDITION_AXIS_VALUES:
-            if actor in present_targets:
-                role_key = f"{actor}_target"
-                role_keys.append(role_key)
-                role_labels[role_key] = f"{col_actor_label(actor)} as TA"
-            if actor in present_owners:
-                role_key = f"{actor}_owner"
-                role_keys.append(role_key)
-                role_labels[role_key] = f"{col_actor_label(actor)} as PDO"
+        actor_keys = [
+            actor
+            for actor in TABLE3_CONDITION_AXIS_VALUES
+            if actor in set(present_targets) | set(present_owners)
+        ]
+        role_keys = ["target", "owner"]
+        role_labels = {
+            "target": "as TA",
+            "owner": "as PDO",
+        }
 
         def actor_role_mapper(row: pd.Series) -> list[tuple[str, str]]:
             target_actor, decision_owner = split_condition_base(row["condition_base"])
             pairs = []
-            target_key = f"{target_actor}_target"
-            owner_key = f"{decision_owner}_owner"
-            if target_key in role_labels:
-                pairs.append((row["placement_key"], target_key))
-            if owner_key in role_labels:
-                pairs.append((row["placement_key"], owner_key))
+            if target_actor in actor_keys:
+                pairs.append((target_actor, "target"))
+            if decision_owner in actor_keys:
+                pairs.append((decision_owner, "owner"))
             return pairs
 
         return {
             "facets": [
-                {"key": key, "label": placement_labels[key]} for key in placement_keys
+                {"key": actor, "label": col_actor_label(actor)}
+                for actor in actor_keys
             ],
             "x_keys": role_keys,
             "x_labels": role_labels,
             "x_axis_title": "Actor role in condition",
             "mapper": actor_role_mapper,
             "subtitle": (
-                "Compares an actor appearing as target actor versus as primary decision "
-                "owner. Same-actor conditions contribute to both roles."
+                "Each actor panel compares that actor appearing as target actor versus "
+                "as primary decision owner."
             ),
         }
 
