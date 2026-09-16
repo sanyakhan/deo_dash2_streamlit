@@ -799,6 +799,28 @@ def css() -> None:
         div[data-testid="stCheckbox"] input[type="checkbox"] {
             accent-color: #cbd5e1;
         }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child,
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child > span,
+        div[data-testid="stCheckbox"] label > span:first-child,
+        div[data-testid="stCheckbox"] input[type="checkbox"] + div,
+        div[data-testid="stCheckbox"] input[type="checkbox"] + span {
+            background: #e5e7eb !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            box-shadow: inset 0 0 0 1px #f1f5f9 !important;
+            color: #64748b !important;
+        }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child svg,
+        div[data-testid="stCheckbox"] label > span:first-child svg {
+            color: #64748b !important;
+            fill: #64748b !important;
+            stroke: #64748b !important;
+        }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child svg path,
+        div[data-testid="stCheckbox"] label > span:first-child svg path {
+            fill: #64748b !important;
+            stroke: #64748b !important;
+        }
         div[data-testid="stCheckbox"] label:has(input[type="checkbox"]:not(:checked)) > span:first-child {
             background: #f8fafc !important;
             border: 1px solid #cbd5e1 !important;
@@ -822,11 +844,30 @@ def css() -> None:
             background: #f8fafc !important;
             color: #111827 !important;
             border-color: #cbd5e1 !important;
+            box-shadow: none !important;
+            outline: none !important;
         }
         div[data-testid="stNumberInput"] div[data-baseweb="input"] {
             border: 1px solid #cbd5e1 !important;
             border-radius: 6px !important;
             box-shadow: inset 0 0 0 1px #e2e8f0 !important;
+        }
+        div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus,
+        div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within,
+        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]:focus,
+        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]:focus-within,
+        div[data-testid="stNumberInput"] input:focus {
+            border-color: #cbd5e1 !important;
+            box-shadow: inset 0 0 0 1px #e2e8f0 !important;
+            outline: none !important;
+        }
+        div[data-testid="stNumberInput"] div[data-baseweb="input"]::before,
+        div[data-testid="stNumberInput"] div[data-baseweb="input"]::after,
+        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]::before,
+        div[data-testid="stNumberInput"] div[data-baseweb="base-input"]::after {
+            border: 0 !important;
+            box-shadow: none !important;
+            outline: none !important;
         }
         div[data-testid="stNumberInput"] button {
             background: #f8fafc !important;
