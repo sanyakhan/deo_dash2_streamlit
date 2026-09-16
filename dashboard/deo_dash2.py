@@ -878,6 +878,65 @@ def css() -> None:
             background: #eef2f7 !important;
             color: #334155 !important;
         }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"],
+        div[data-testid="stCheckbox"] label {
+            align-items: center !important;
+            display: inline-flex !important;
+            gap: .38rem !important;
+            position: relative !important;
+        }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > span:first-child,
+        div[data-testid="stCheckbox"] label > span:first-child,
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"] > div:first-child:not([data-testid="stMarkdownContainer"]),
+        div[data-testid="stCheckbox"] label > div:first-child:not([data-testid="stMarkdownContainer"]) {
+            display: none !important;
+        }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"]::before,
+        div[data-testid="stCheckbox"] label::before {
+            background: #e5e7eb !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 5px !important;
+            box-shadow: inset 0 0 0 1px #f8fafc !important;
+            content: "" !important;
+            display: inline-block !important;
+            flex: 0 0 14px !important;
+            height: 14px !important;
+            width: 14px !important;
+        }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:has(input:checked)::before,
+        div[data-testid="stCheckbox"] label:has(input:checked)::before {
+            background: #e2e8f0 !important;
+            border-color: #cbd5e1 !important;
+        }
+        div[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:has(input:checked)::after,
+        div[data-testid="stCheckbox"] label:has(input:checked)::after {
+            border: solid #64748b !important;
+            border-width: 0 1.5px 1.5px 0 !important;
+            content: "" !important;
+            height: 7px !important;
+            left: 5px !important;
+            margin-top: -5px !important;
+            position: absolute !important;
+            top: 50% !important;
+            transform: rotate(45deg) !important;
+            width: 4px !important;
+        }
+        div[data-testid="stNumberInput"],
+        div[data-testid="stNumberInput"] * {
+            box-shadow: none !important;
+            outline: none !important;
+        }
+        div[data-testid="stNumberInput"] * {
+            border-color: #cbd5e1 !important;
+        }
+        div[data-testid="stNumberInput"] div[data-baseweb="input"],
+        div[data-testid="stNumberInput"] div[data-baseweb="input"] *,
+        div[data-testid="stNumberInput"] div[data-baseweb="base-input"],
+        div[data-testid="stNumberInput"] div[data-baseweb="base-input"] *,
+        div[data-testid="stNumberInput"] input,
+        div[data-testid="stNumberInput"] button {
+            background-color: #f8fafc !important;
+        }
         .grok-table-wrap {
             overflow: auto;
             border: 1px solid #e5e7eb;
