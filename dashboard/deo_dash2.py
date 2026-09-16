@@ -1838,38 +1838,61 @@ def col_mode_spec(
         }
 
     if view == "Actor role":
-        actor_keys = [
-            actor
-            for actor in TABLE3_CONDITION_AXIS_VALUES
-            if actor in set(present_targets) | set(present_owners)
-        ]
-        role_keys = ["target", "owner"]
-        role_labels = {
-            "target": "as TA",
-            "owner": "as PDO",
+        role_keys = []
+        role_labels = {}
+        actor_band_colors = {
+            "user": "#ffe4f1",
+            "sdc": "#f4efff",
+            "llm": "#eaf8ef",
+            "difuser": "#fff3e6",
         }
+        actor_bands = []
+        for actor in TABLE3_CONDITION_AXIS_VALUES:
+            actor_role_keys = []
+            if actor in present_targets:
+                role_key = f"{actor}_target"
+                role_keys.append(role_key)
+                actor_role_keys.append(role_key)
+                role_labels[role_key] = f"{col_actor_label(actor)} as TA"
+            if actor in present_owners:
+                role_key = f"{actor}_owner"
+                role_keys.append(role_key)
+                actor_role_keys.append(role_key)
+                role_labels[role_key] = f"{col_actor_label(actor)} as PDO"
+            if actor_role_keys:
+                start = len(role_keys) - len(actor_role_keys)
+                actor_bands.append(
+                    {
+                        "label": col_actor_label(actor),
+                        "x0": start - 0.5,
+                        "x1": len(role_keys) - 0.5,
+                        "color": actor_band_colors[actor],
+                    }
+                )
 
         def actor_role_mapper(row: pd.Series) -> list[tuple[str, str]]:
             target_actor, decision_owner = split_condition_base(row["condition_base"])
             pairs = []
-            if target_actor in actor_keys:
-                pairs.append((target_actor, "target"))
-            if decision_owner in actor_keys:
-                pairs.append((decision_owner, "owner"))
+            target_key = f"{target_actor}_target"
+            owner_key = f"{decision_owner}_owner"
+            if target_key in role_labels:
+                pairs.append((row["placement_key"], target_key))
+            if owner_key in role_labels:
+                pairs.append((row["placement_key"], owner_key))
             return pairs
 
         return {
             "facets": [
-                {"key": actor, "label": col_actor_label(actor)}
-                for actor in actor_keys
+                {"key": key, "label": placement_labels[key]} for key in placement_keys
             ],
             "x_keys": role_keys,
             "x_labels": role_labels,
+            "x_bands": actor_bands,
             "x_axis_title": "Actor role in condition",
             "mapper": actor_role_mapper,
             "subtitle": (
-                "Each actor panel compares that actor appearing as target actor versus "
-                "as primary decision owner."
+                "Compares an actor appearing as target actor versus as primary decision "
+                "owner. Same-actor conditions contribute to both roles."
             ),
         }
 
@@ -2154,6 +2177,7 @@ def plot_collapsed_metric_summary(
     facets = spec["facets"]
     x_keys = spec["x_keys"]
     x_labels = spec["x_labels"]
+    x_bands = spec.get("x_bands", [])
     rows = max(1, int(np.ceil(len(facets) / 2)))
     cols = 1 if len(facets) == 1 else 2
     fig = make_subplots(
@@ -2169,6 +2193,24 @@ def plot_collapsed_metric_summary(
         row = index // cols + 1
         col = index % cols + 1
         sub = collapsed[collapsed["facet_key"].eq(facet["key"])]
+        if x_bands:
+            subplot_index = (row - 1) * cols + col
+            xref = "x" if subplot_index == 1 else f"x{subplot_index}"
+            yref = "y domain" if subplot_index == 1 else f"y{subplot_index} domain"
+            for band in x_bands:
+                fig.add_shape(
+                    type="rect",
+                    xref=xref,
+                    yref=yref,
+                    x0=band["x0"],
+                    x1=band["x1"],
+                    y0=0,
+                    y1=1,
+                    fillcolor=band["color"],
+                    opacity=0.42,
+                    layer="below",
+                    line={"width": 0},
+                )
         for model_key in trace_models:
             add_collapsed_metric_trace(
                 fig,
