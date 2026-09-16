@@ -1889,6 +1889,7 @@ def col_mode_spec(
             "x_keys": role_keys,
             "x_labels": role_labels,
             "x_bands": actor_bands,
+            "break_lines_at_x_bands": True,
             "x_axis_title": "Actor role in condition",
             "mapper": actor_role_mapper,
             "subtitle": (
@@ -2050,6 +2051,7 @@ def add_collapsed_metric_trace(
     aggregate_models: bool,
     show_ci: bool = True,
     show_model_range: bool = False,
+    break_x_bands: list[dict[str, object]] | None = None,
 ) -> None:
     model_sub = sub[sub["model_key"].eq(model_key)].sort_values("x_index")
     if model_sub.empty:
@@ -2075,6 +2077,44 @@ def add_collapsed_metric_trace(
         ],
         axis=-1,
     )
+    trace_x = x
+    trace_y = y
+    trace_custom = custom
+    trace_err_hi = err_hi
+    trace_err_lo = err_lo
+    if break_x_bands:
+        band_for_index = {}
+        for band_index, band in enumerate(break_x_bands):
+            for x_index in model_sub["x_index"].astype(int).tolist():
+                if float(band["x0"]) < x_index < float(band["x1"]):
+                    band_for_index[x_index] = band_index
+        split_x = []
+        split_y = []
+        split_custom = []
+        split_err_hi = []
+        split_err_lo = []
+        previous_band = None
+        for point_index, (x_value, x_index, y_value) in enumerate(
+            zip(x.tolist(), model_sub["x_index"].astype(int).tolist(), y.tolist())
+        ):
+            current_band = band_for_index.get(x_index)
+            if previous_band is not None and current_band != previous_band:
+                split_x.append(None)
+                split_y.append(None)
+                split_custom.append([None] * custom.shape[1])
+                split_err_hi.append(None)
+                split_err_lo.append(None)
+            split_x.append(x_value)
+            split_y.append(y_value)
+            split_custom.append(custom[point_index].tolist())
+            split_err_hi.append(err_hi.iloc[point_index])
+            split_err_lo.append(err_lo.iloc[point_index])
+            previous_band = current_band
+        trace_x = split_x
+        trace_y = split_y
+        trace_custom = np.array(split_custom, dtype=object)
+        trace_err_hi = pd.Series(split_err_hi, dtype="float")
+        trace_err_lo = pd.Series(split_err_lo, dtype="float")
     hovertemplate = (
         "X: %{customdata[0]}<br>"
         "Model: %{customdata[1]}<br>"
@@ -2086,9 +2126,9 @@ def add_collapsed_metric_trace(
     )
     fig.add_trace(
         go.Scatter(
-            x=x,
-            y=y,
-            customdata=custom,
+            x=trace_x,
+            y=trace_y,
+            customdata=trace_custom,
             mode="lines+markers",
             name=str(model_sub["model"].iloc[0]),
             legendgroup=f"collapsed-{model_key}",
@@ -2097,8 +2137,8 @@ def add_collapsed_metric_trace(
             marker={"color": color, "size": 6.0 if aggregate_models else 5.5},
             error_y={
                 "type": "data",
-                "array": err_hi.clip(lower=0),
-                "arrayminus": err_lo.clip(lower=0),
+                "array": trace_err_hi.clip(lower=0),
+                "arrayminus": trace_err_lo.clip(lower=0),
                 "visible": show_ci,
                 "thickness": 1,
                 "width": 4,
@@ -2179,6 +2219,7 @@ def plot_collapsed_metric_summary(
     x_keys = spec["x_keys"]
     x_labels = spec["x_labels"]
     x_bands = spec.get("x_bands", [])
+    break_x_bands = x_bands if spec.get("break_lines_at_x_bands") else None
     rows = max(1, int(np.ceil(len(facets) / 2)))
     cols = 1 if len(facets) == 1 else 2
     fig = make_subplots(
@@ -2226,6 +2267,7 @@ def plot_collapsed_metric_summary(
                 aggregate_models=aggregate_models,
                 show_ci=(not aggregate_models) or show_aggregate_ci,
                 show_model_range=show_model_range,
+                break_x_bands=break_x_bands,
             )
         if baseline is not None and not baseline.empty:
             for _, baseline_row in baseline.iterrows():
